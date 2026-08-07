@@ -602,8 +602,8 @@ function renderWin(){
 }
 
 /* ---------- игровые действия (пишет только текущий игрок) ---------- */
-function doRoll(){
-  if(!isMyTurn()||room.game.phase!=='roll'||animLock)return;
+ function doRoll(){
+  if(!isMyTurn()||!(room.game.phase==='roll'||room.game.phase==='choose')||animLock)return;
   const g=room.game,n=(g.dice||[]).length||5;
   animLock=true;renderActions();
   const box=$('diceBox');box.innerHTML='';
