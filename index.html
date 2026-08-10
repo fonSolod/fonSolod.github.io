@@ -1031,7 +1031,7 @@ $('modal').onclick=e=>{if(e.target.id==='modal')$('modal').hidden=true;};
 let soundOn=true;$('btnSound').onclick=()=>{soundOn=!soundOn;$('btnSound').textContent=soundOn?'🔊':'🔇';};
 
 /* ---------- звук броска: случайный из трёх ---------- */
-const ROLL_SOUNDS=['dice1.mp3','dice2.mp3','dice3.mp3']; // ← ваши файлы; можно mp3/ogg/wav
+const ROLL_SOUNDS=['dice1.wav','dice2.wav','dice3.wav']; // ← ваши файлы; можно mp3/ogg/wav
 let rollAudios=null;
 function playRollSound(){
   if(!soundOn)return;
