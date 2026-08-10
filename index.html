@@ -734,13 +734,13 @@ function renderActions(){
 let lastLogCount=0;
 function renderLog(){
   const logBox=$('log'),list=$('logList');
-  const entries=Object.values(room.log||{}).sort((a,b)=>a.ts-b.ts).slice(-60);
+  const entries=Object.values(room.log||{}).sort((a,b)=>b.ts-a.ts).slice(0,60);
   list.innerHTML='';
   entries.forEach(e=>{
     const d=document.createElement('div');d.className='entry '+(e.k||'');d.textContent=e.t;list.appendChild(d);
   });
   const total=Object.keys(room.log||{}).length;
-  if(total!==lastLogCount){lastLogCount=total;logBox.scrollTop=logBox.scrollHeight;}
+  if(total!==lastLogCount){lastLogCount=total;logBox.scrollTop=0;}
 }
 function checkToast(){
   const entries=Object.values(room.log||{}).sort((a,b)=>a.ts-b.ts);
@@ -1030,15 +1030,18 @@ $('modalClose').onclick=()=>$('modal').hidden=true;
 $('modal').onclick=e=>{if(e.target.id==='modal')$('modal').hidden=true;};
 let soundOn=true;$('btnSound').onclick=()=>{soundOn=!soundOn;$('btnSound').textContent=soundOn?'🔊':'🔇';};
 
-/* ---------- звук броска ---------- */
-const ROLL_SOUND_URL='dice.mp3'; // ← имя вашего файла; mp3/ogg/wav
-let rollAudio=null;
+/* ---------- звук броска: случайный из трёх ---------- */
+const ROLL_SOUNDS=['dice1.mp3','dice2.mp3','dice3.mp3']; // ← ваши файлы; можно mp3/ogg/wav
+let rollAudios=null;
 function playRollSound(){
   if(!soundOn)return;
   try{
-    if(!rollAudio){rollAudio=new Audio(ROLL_SOUND_URL);rollAudio.volume=.85;}
-    rollAudio.currentTime=0;
-    rollAudio.play().catch(()=>{});
+    if(!rollAudios){
+      rollAudios=ROLL_SOUNDS.map(u=>{const a=new Audio(u);a.volume=.85;return a;});
+    }
+    const a=rollAudios[Math.floor(Math.random()*rollAudios.length)];
+    a.currentTime=0;
+    a.play().catch(()=>{});
   }catch(e){}
 }
 
