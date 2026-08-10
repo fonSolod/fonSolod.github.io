@@ -29,7 +29,6 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .panel{max-width:560px;margin:4vh auto 0;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:34px;box-shadow:0 30px 60px rgba(0,0,0,.45)}
 .logo{display:flex;align-items:center;gap:16px;justify-content:center}
 .logo h1{font-family:'Unbounded';font-weight:800;font-size:clamp(30px,6vw,44px);letter-spacing:3px;color:var(--gold);text-shadow:0 0 34px rgba(245,196,81,.25)}
-.logoDie{width:58px;height:58px;flex:none}
 .tagline{text-align:center;color:var(--muted);margin:10px 0 24px;font-size:14px}
 .setupLabel{font-family:'Unbounded';font-weight:600;font-size:12px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin:0 0 10px}
 .bigInput{width:100%;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.13);border-radius:12px;color:var(--ink);padding:13px 14px;font-size:15px;outline:none;margin-bottom:14px}
@@ -51,7 +50,6 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .pdotBig{width:13px;height:13px;border-radius:50%;flex:none;box-shadow:0 0 9px currentColor}
 .onlineDot{width:9px;height:9px;border-radius:50%;margin-left:auto;flex:none}
 .badge{font-size:10px;font-weight:700;letter-spacing:1px;color:#3a2708;background:var(--gold);border-radius:20px;padding:2px 8px;text-transform:uppercase}
-.badge.spec{background:rgba(255,255,255,.15);color:var(--muted)}
 .pickHint{width:100%;text-align:center;font-size:12px;color:var(--muted);margin-top:8px}
 .tbtn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:var(--ink);border-radius:10px;padding:8px 13px;font-size:13px;transition:.18s}
 .tbtn:hover{background:rgba(255,255,255,.13);border-color:var(--gold)}
@@ -68,13 +66,14 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .go{margin-left:auto;font-size:9.5px;font-weight:700;letter-spacing:1px;color:#3a2708;background:var(--gold);border-radius:20px;padding:2px 8px;text-transform:uppercase;flex:none}
 .odot{width:8px;height:8px;border-radius:50%;flex:none;margin-left:4px}
 .pscore{font-family:'Unbounded';font-weight:800;font-size:30px;margin:4px 0 6px}
-.pcard.pitcard .pscore{color:var(--bad)}
+.pcard.bcard .pscore{color:var(--bad)}
 .chips{display:flex;flex-wrap:wrap;gap:5px}
 .chip{font-size:10.5px;font-weight:500;padding:2.5px 8px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
 .chip.lock{color:var(--gold2);border-color:rgba(245,196,81,.4)}
-.chip.pit{color:var(--bad);border-color:rgba(255,122,107,.45)}
-.chip.bolt{color:var(--info);border-color:rgba(143,216,255,.35)}
+.chip.barrel{color:var(--bad);border-color:rgba(255,122,107,.45)}
+.chip.zero{color:var(--info);border-color:rgba(143,216,255,.35)}
 .chip.dot{color:var(--dump);border-color:rgba(199,155,255,.4)}
+.chip.bolt{color:#ffb0a0;border-color:rgba(255,122,107,.5)}
 #trackWrap{margin-bottom:14px;background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px 24px}
 #track{position:relative;height:40px}
 .trackBar{position:absolute;left:0;right:0;top:16px;height:8px;border-radius:6px;background:linear-gradient(90deg,#1c5a44,#2a7c5c 60%,#3f9c74)}
@@ -111,13 +110,13 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .die.big.sel{transform:translateY(-9px)}
 .die.big.dim{opacity:.5;filter:saturate(.65)}
 .die.big.bust .face{box-shadow:0 0 0 3px var(--bad),0 0 22px rgba(255,122,107,.5)}
-.die.bust{animation:shake .5s ease}
+.die.bust{animation:shakeX .5s ease}
 .die.rolling{animation:tumble .3s linear infinite}
 .die.ghost .face{background:rgba(255,255,255,.04);border:2px dashed rgba(255,255,255,.18);box-shadow:none}
 .die.mini{width:32px;height:32px;flex:none}
 .die.mini .face{border-radius:22%;padding:16%;box-shadow:0 3px 6px rgba(0,0,0,.4),inset 0 1px 0 #fff}
 @keyframes tumble{0%{transform:translateY(0) rotate(0)}30%{transform:translateY(-17px) rotate(95deg)}65%{transform:translateY(3px) rotate(215deg)}100%{transform:translateY(0) rotate(360deg)}}
-@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes shakeX{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 #trayWrap{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;border-top:1px dashed rgba(255,255,255,.14);padding-top:14px;margin-top:4px}
 #trayBox{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:34px;align-items:center;max-width:420px}
 .trayEmpty{font-size:12px;color:rgba(169,198,184,.55);font-style:italic}
@@ -219,8 +218,8 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
     <div id="players"></div>
     <div id="trackWrap"><div id="track">
       <div class="trackBar"></div>
-      <div class="zone" style="left:20%;width:10%"><b>⛏ 200–300</b></div>
-      <div class="zone" style="left:60%;width:10%"><b>⛏ 600–700</b></div>
+      <div class="zone" style="left:19.5%;width:10%"><b>🛢 бочка 195–295</b></div>
+      <div class="zone" style="left:69.5%;width:10%"><b>🛢 бочка 695–795</b></div>
       <div class="svMark" style="left:55.5%"><i></i><b>555</b></div>
       <div class="finishMark"><i></i><b>1000</b></div>
       <div id="tokens"></div>
@@ -242,26 +241,26 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 </div>
 
 <div id="modal" hidden><div class="modalBox">
-  <h2>📖 Правила «Тыщи»</h2>
+  <h2>📖 Правила игры в «Тысячу»</h2>
   <ul>
-    <li><b>Цель</b> — набрать ровно <b>1000 очков</b> (ни очком больше!).</li>
-    <li>Ход: бросаете 5 кубиков, берёте очковые комбинации (кубики выбираются кликом), остальные перебрасываете — либо «Хватит».</li>
-    <li><b>Открытие:</b> первая запись — не менее 50 очков за ход.</li>
-    <li><b>Болт:</b> пустой бросок — очки хода сгорают. Три неудачных открытия — −50.</li>
-    <li><b>Ямы 200–300 и 600–700:</b> из ямы нужно выпрыгнуть за верхнюю границу за один ход.</li>
-    <li><b>Обгон:</b> обогнали соперника — с него −50.</li>
-    <li><b>Самосвал:</b> ровно 555 — счёт обнуляется.</li>
-    <li><b>Бочка:</b> перебор 1000 — «точка». Шесть точек — падение на 0.</li>
-    <li>Все 5 кубиков очковые — снова бросаются все, бросок обязателен!</li>
-    <li>📱 На телефоне бросок и переброс можно делать <b>встряхиванием</b>.</li>
+    <li><b>Цель</b> — набрать ровно <b>1000 очков</b>. Очередность первого хода разыгрывается (в приложении — жребием).</li>
+    <li>Ход: бросок 5 кубиков. Очковые кубики откладываются (выбор кликом), остальные перебрасываются — либо «Хватит» и запись очков. Если все 5 очковые — обязательный бросок всех пяти.</li>
+    <li><b>Вход в игру:</b> первая запись — <b>не менее 50</b> очков за ход.</li>
+    <li><b>Нулевой бросок:</b> очки хода сгорают. <b>Три нулевых броска подряд — точка</b>.</li>
+    <li><b>Бочки 195–295 и 695–795</b> (границы не входят): оказавшись в бочке, нужно выйти за <b>два хода</b> (ход с перебором 1000 тоже считается). При падении с бочки записи, сделанные в бочке, зачёркиваются, и счёт возвращается к значению <b>до входа в бочку</b>.</li>
+    <li><b>Обгон:</b> обогнанный игрок «срезается» на ваш счёт <b>до хода</b>. Игроков в бочке обгон не срезает. Срезанный до 0 входит в игру заново.</li>
+    <li><b>Самосвал:</b> ровно 555 — все очки списываются, входить в игру не нужно.</li>
+    <li><b>Перебор 1000:</b> точка, ход не засчитывается.</li>
+    <li>По каждому игроку ведётся <b>последовательная запись очков</b>. <b>Три точки → болт</b>: последние 3 записи зачёркиваются, счёт откатывается к последней незачёркнутой записи. Если срез привёл в бочку — на выход <b>один ход</b>. <b>Три болта</b> — списываются все очки.</li>
+    <li>📱 На телефоне бросок и переброс — встряхиванием.</li>
+    <li><i>Правило «кость упала со стола» в цифровой версии не отслеживается.</i></li>
   </ul>
-  <h4>Комбинации</h4>
+  <h4>Комбинации (зачёт — максимальная)</h4>
   <table>
     <tr><td>Кубик «1» / «5»</td><td>10 / 5</td></tr>
-    <tr><td>Три одинаковых (кроме 1)</td><td>номинал × 10</td></tr>
-    <tr><td>Четыре / пять одинаковых (кроме 1)</td><td>× 20 / × 100</td></tr>
-    <tr><td>Три / четыре / пять единиц</td><td>100 / 200 / 1000</td></tr>
-    <tr><td>Стрит 1-2-3-4-5 / 2-3-4-5-6</td><td>125 / 250</td></tr>
+    <tr><td>Три одинаковых</td><td>номинал × 10 (три «1» = 100)</td></tr>
+    <tr><td>Четыре одинаковых</td><td>номинал × 20 (четыре «1» = 200)</td></tr>
+    <tr><td>Пять одинаковых</td><td>номинал × 100 (пять «1» = 1000)</td></tr>
   </table>
   <button class="btn primary wide" id="modalClose" style="margin-top:20px">Понятно</button>
 </div></div>
@@ -276,26 +275,14 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 <div id="toast"></div>
 
 <script type="module">
-    
-    
-/* ================== НАСТРОЙКА FIREBASE ==================
-   Вставьте сюда конфиг из консоли Firebase:
-   Project settings → Your apps → Web → firebaseConfig    */
-   
-   
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+/* ================== НАСТРОЙКА FIREBASE ================== */
 const firebaseConfig = {
-  apiKey: "AIzaSyB_GNnhKBop_koWOLjBjyVmfVoWJ_tvF40",
-  authDomain: "game-95c86.firebaseapp.com",
-  databaseURL: "https://game-95c86-default-rtdb.firebaseio.com",
-  projectId: "game-95c86",
-  storageBucket: "game-95c86.firebasestorage.app",
-  messagingSenderId: "485164734552",
-  appId: "1:485164734552:web:95a1258519498719d4122d",
-  measurementId: "G-F9PW364YX8"
+  apiKey: "ВСТАВЬТЕ_API_KEY",
+  authDomain: "ВАШ-ПРОЕКТ.firebaseapp.com",
+  databaseURL: "https://ВАШ-ПРОЕКТ-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "ВАШ-ПРОЕКТ",
+  appId: "ВСТАВЬТЕ_APP_ID"
 };
-
-
 /* ======================================================== */
 
 const $=id=>document.getElementById(id);
@@ -311,8 +298,10 @@ if(configured){
 }
 
 /* ---------- константы правил ---------- */
-const OPEN_MIN=50,TARGET=1000,SAMOSVAL=555,DOTS_LIMIT=6;
-const PITS=[{lo:200,hi:300},{lo:600,hi:700}];
+const OPEN_MIN=50;                 // вход в игру: не менее 50
+const TARGET=1000, SAMOSVAL=555;
+const DOT_LIMIT=3, BOLT_LIMIT=3, ZERO_STREAK=3;
+const BARRELS=[{lo:195,hi:295},{lo:695,hi:795}]; // границы не входят в бочку
 const PC=['#ffd76a','#ff7a6b','#6bd5ff','#c79bff'];
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 
@@ -328,46 +317,154 @@ const validCode=c=>/^[A-Z2-9]{4}$/.test(c||'');
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 function ptsWord(n){const a=Math.abs(n)%100,b=a%10;if(a>=11&&a<=14)return'очков';if(b===1)return'очко';if(b>=2&&b<=4)return'очка';return'очков';}
 function kubWord(n){const b=n%10,a=n%100;if(b===1&&a!==11)return'кубик';if(b>=2&&b<=4&&(a<12||a>14))return'кубика';return'кубиков';}
-const getPit=sc=>PITS.find(p=>sc>p.lo&&sc<p.hi)||null;
+function hodWord(n){if(n===1)return'1 ход';return n+' хода';}
+const getBarrel=sc=>BARRELS.find(b=>sc>b.lo&&sc<b.hi)||null;
 const R=p=>ref(db,`rooms/${roomCode}${p?'/'+p:''}`);
 const isMyTurn=()=>!!(room&&room.game&&room.game.current===myPid);
 function toast(t,k){const el=$('toast');el.textContent=t;el.className='show '+(k||'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.className='',2400);}
 function copyInvite(){const link=location.href.split('#')[0]+'#'+roomCode;
   (navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(()=>toast('Ссылка скопирована','gold')).catch(()=>toast(link));}
-/* уникальное имя: если такое уже есть в комнате — добавляем «2», «3», … */
-function uniqueName(name, players){
+function uniqueName(name,players){
   const taken=Object.values(players||{}).map(p=>(p.name||'').toLowerCase());
   if(!taken.includes(name.toLowerCase()))return name;
-  let i=2;
-  while(taken.includes((name+' '+i).toLowerCase()))i++;
+  let i=2;while(taken.includes((name+' '+i).toLowerCase()))i++;
   return name+' '+i;
 }
 
 /* ---------- логика очков ---------- */
-function facePts(f,c){if(f===1)return[0,10,20,100,200,1000][c];if(f===5)return[0,5,10,50,100,500][c];return[0,0,0,f*10,f*20,f*100][c];}
+function facePts(f,c){
+  if(f===1)return[0,10,20,100,200,1000][c];
+  if(f===5)return[0,5,10,50,100,500][c];
+  return[0,0,0,f*10,f*20,f*100][c];
+}
 function calcScore(faces){
-  if(faces.length===5){const k=[...faces].sort().join('');if(k==='12345')return 125;if(k==='23456')return 250;}
   const cnt={};faces.forEach(f=>cnt[f]=(cnt[f]||0)+1);
   let t=0;for(const f in cnt)t+=facePts(+f,cnt[f]);return t;
 }
 function scoringFlags(faces){
-  if(faces.length===5){const k=[...faces].sort().join('');if(k==='12345'||k==='23456')return faces.map(()=>true);}
   const cnt={};faces.forEach(f=>cnt[f]=(cnt[f]||0)+1);
   return faces.map(f=>f===1||f===5||cnt[f]>=3);
 }
 function canBank(){
   const p=room.players[room.game.current],g=room.game;
   if(g.turnTotal<5)return{ok:false,why:'Сначала возьмите очки'};
-  if(!p.opened&&g.turnTotal<OPEN_MIN)return{ok:false,why:`Открытие: нужно ≥ ${OPEN_MIN} за ход (взято ${g.turnTotal})`};
-  const pit=getPit(p.score);
-  if(pit&&p.score+g.turnTotal<pit.hi)return{ok:false,why:`Яма ${pit.lo}–${pit.hi}: добрать до ${pit.hi}`};
+  if(!p.opened&&g.turnTotal<OPEN_MIN)return{ok:false,why:`Вход в игру: нужно не менее ${OPEN_MIN} очков за ход (взято ${g.turnTotal})`};
   return{ok:true};
 }
 function pushLogIn(upd,t,k){upd[`log/l${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`]={t,k,ts:Date.now()};}
 function baseWait(g){return{seq:g.seq+1,current:myPid,phase:'wait',dice:[],tray:g.tray||[],turnTotal:0,startScore:g.startScore,hot:false,busted:false,waitTs:Date.now()};}
+const projOf=(upd,pid,k)=>(`players/${pid}/${k}` in upd)?upd[`players/${pid}/${k}`]:room.players[pid][k];
+
+/* ---------- журнал записей очков ---------- */
+// hist: массив записей {v: счёт, x: зачёркнута}. Текущий счёт = последняя незачёркнутая запись.
+function projHist(upd,pid){
+  const key=`players/${pid}/hist`;
+  if(key in upd)return upd[key];
+  return (room.players[pid].hist||[]).map(e=>({...e}));
+}
+function lastValidIndex(hist){for(let i=hist.length-1;i>=0;i--){if(!hist[i].x)return i;}return -1;}
+function effScore(hist){const i=lastValidIndex(hist);return i<0?0:hist[i].v;}
+function commitHist(upd,pid,hist){
+  upd[`players/${pid}/hist`]=hist;
+  upd[`players/${pid}/score`]=effScore(hist);
+}
+function pushScore(upd,pid,v){
+  const hist=projHist(upd,pid);
+  hist.push({v});
+  commitHist(upd,pid,hist);
+}
+function crossLast(upd,pid,n){
+  const hist=projHist(upd,pid);
+  let toCross=n;
+  for(let i=hist.length-1;i>=0&&toCross>0;i--){
+    if(!hist[i].x){hist[i].x=true;toCross--;}
+  }
+  commitHist(upd,pid,hist);
+  return effScore(hist);
+}
+function clearBarrelState(upd,pid){
+  upd[`players/${pid}/inBarrel`]=null;
+  upd[`players/${pid}/barrelLeft`]=null;
+  upd[`players/${pid}/histMark`]=null;
+}
+
+/* ---------- точка / болт / бочка / самосвал ---------- */
+function applyDot(upd,pid,reason){
+  const p=room.players[pid];
+  const dots=projOf(upd,pid,'dots')+1;
+  if(dots>=DOT_LIMIT){
+    upd[`players/${pid}/dots`]=0;
+    const bolts=projOf(upd,pid,'bolts')+1;
+    if(bolts>=BOLT_LIMIT){
+      upd[`players/${pid}/bolts`]=0;
+      upd[`players/${pid}/opened`]=false;
+      clearBarrelState(upd,pid);
+      pushScore(upd,pid,0);
+      return {msg:`${reason} Третья точка — БОЛТ! Это третий болт: ${p.name} теряет все очки.`,cutToBarrel:false};
+    }
+    upd[`players/${pid}/bolts`]=bolts;
+    clearBarrelState(upd,pid);
+    const newScore=crossLast(upd,pid,3);
+    if(newScore===0)upd[`players/${pid}/opened`]=false;
+    const cb=getBarrel(newScore);
+    return {msg:`${reason} Третья точка — БОЛТ! Последние 3 записи ${p.name} зачёркнуты, счёт: ${newScore} ${ptsWord(newScore)}.${cb?' Срез привёл в бочку — на выход один ход!':''}`,cutToBarrel:!!cb};
+  }
+  upd[`players/${pid}/dots`]=dots;
+  return {msg:`${reason} Точка ${dots}/${DOT_LIMIT}.`,cutToBarrel:false};
+}
+function barrelFall(upd,pid){
+  const hist=projHist(upd,pid);
+  const mark=projOf(upd,pid,'histMark');
+  const m=(mark==null||mark<0)?Math.max(0,lastValidIndex(hist)):mark;
+  for(let i=m;i<hist.length;i++)hist[i].x=true; // записи, сделанные в бочке, обнуляются
+  clearBarrelState(upd,pid);
+  commitHist(upd,pid,hist);
+  const fell=effScore(hist);
+  if(fell===0)upd[`players/${pid}/opened`]=false;
+  return fell;
+}
+function applyBarrelTick(upd,pid,entryLeft=2){
+  const p=room.players[pid];
+  const score=projOf(upd,pid,'score');
+  const barrel=getBarrel(score);
+  const stored=projOf(upd,pid,'inBarrel');
+  if(!barrel){
+    if(stored!=null){
+      clearBarrelState(upd,pid);
+      pushLogIn(upd,`🛢 ${p.name} выходит из бочки!`,'bank');
+    }
+    return;
+  }
+  if(stored==null||stored!==barrel.lo){
+    upd[`players/${pid}/histMark`]=lastValidIndex(projHist(upd,pid)); // запись, определившая вход в бочку
+    upd[`players/${pid}/inBarrel`]=barrel.lo;
+    upd[`players/${pid}/barrelLeft`]=entryLeft;
+    pushLogIn(upd,`🛢 ${p.name} попадает в бочку ${barrel.lo}–${barrel.hi}: ${entryLeft===1?'один ход':'2 хода'} на выход!`,'dot');
+    return;
+  }
+  let left=projOf(upd,pid,'barrelLeft')-1;
+  if(left<=0){
+    const fell=barrelFall(upd,pid);
+    pushLogIn(upd,`🛢 ${p.name} не вышел из бочки ${barrel.lo}–${barrel.hi}: записи в бочке зачёркнуты, счёт возвращается на ${fell} ${ptsWord(fell)} (до входа в бочку).`,'bad');
+  }else{
+    upd[`players/${pid}/barrelLeft`]=left;
+    pushLogIn(upd,`🛢 ${p.name} остаётся в бочке: на выход ${left===1?'последний ход':'осталось '+hodWord(left)}`,'dot');
+  }
+}
+function applySamosvalAll(upd){
+  room.order.forEach(pid=>{
+    const val=projOf(upd,pid,'score');
+    if(val===SAMOSVAL){
+      pushScore(upd,pid,0);
+      upd[`players/${pid}/opened`]=true; // после самосвала входить в игру не нужно
+      clearBarrelState(upd,pid);
+      pushLogIn(upd,`🚛 Самосвал! ${room.players[pid].name} обнуляется (было 555)`,'dump');
+    }
+  });
+}
 
 /* ---------- комнаты ---------- */
-function playerObj(name,seat){return{name,seat,score:0,opened:false,bolts:0,dots:0,online:true,joinedAt:Date.now()};}
+function playerObj(name,seat){return{name,seat,score:0,opened:false,bolts:0,dots:0,zeroStreak:0,inBarrel:null,barrelLeft:null,histMark:null,hist:[],online:true,joinedAt:Date.now()};}
 async function createRoom(){
   const name=getName();let code=genCode();
   for(let i=0;i<5;i++){const s=await get(ref(db,`rooms/${code}`));if(!s.exists())break;code=genCode();}
@@ -444,23 +541,25 @@ function renderGame(prev){
   maybeIncomingAnim(prev);
   renderPlayers();renderTrack();renderDice();renderTray();renderTurnInfo();renderActions();renderLog();
   scheduleAutoAdvance();
-  const fin=room.meta.status==='finished';
-  if(fin){$('winOverlay').hidden=false;renderWin();}
+  if(room.meta.status==='finished'){$('winOverlay').hidden=false;renderWin();}
   else $('winOverlay').hidden=true;
 }
 function renderPlayers(){
   const box=$('players');box.innerHTML='';
   room.order.forEach(pid=>{
     const p=room.players[pid];if(!p)return;
-    const pit=getPit(p.score),act=room.game.current===pid;
+    const barrel=getBarrel(p.score),act=room.game.current===pid;
     const c=document.createElement('div');
-    c.className='pcard'+(act?' active':'')+(pit?' pitcard':'');
+    c.className='pcard'+(act?' active':'')+(barrel?' bcard':'');
     c.style.setProperty('--pc',PC[p.seat]);
+    const hist=p.hist||[];
+    if(hist.length)c.title='История записей: '+(p.opened?'':'(не открыт) ') + hist.map(e=>e.x?'✗'+e.v:e.v).join(' → ');
     const chips=[];
-    if(!p.opened)chips.push('<span class="chip lock">🔒 старт ≥50</span>');
-    if(pit)chips.push(`<span class="chip pit">⛏ яма ${pit.lo}–${pit.hi}</span>`);
-    if(p.bolts)chips.push(`<span class="chip bolt">⚡ болтов: ${p.bolts}</span>`);
-    if(p.dots)chips.push(`<span class="chip dot">🎯 ${'●'.repeat(p.dots)}${'○'.repeat(6-p.dots)}</span>`);
+    if(!p.opened)chips.push('<span class="chip lock">🔒 вход ≥50</span>');
+    if(p.inBarrel!=null)chips.push(`<span class="chip barrel">🛢 бочка ${p.inBarrel}–${p.inBarrel+100} · ${p.barrelLeft!=null?hodWord(p.barrelLeft):''}</span>`);
+    if(p.zeroStreak)chips.push(`<span class="chip zero">⚡ нулевых подряд: ${p.zeroStreak}/${ZERO_STREAK}</span>`);
+    if(p.dots)chips.push(`<span class="chip dot">🎯 точки: ${p.dots}/${DOT_LIMIT}</span>`);
+    if(p.bolts)chips.push(`<span class="chip bolt">🔩 болты: ${p.bolts}/${BOLT_LIMIT}</span>`);
     if(!chips.length)chips.push('<span class="chip">в игре</span>');
     c.innerHTML=`<div class="phead"><span class="pdot"></span><span class="pname">${esc(p.name)}</span>
       ${act?'<span class="go">ходит</span>':''}
@@ -537,16 +636,19 @@ function renderTurnInfo(){
     banner.hidden=false;banner.textContent=(g.busted?'💥 ':'')+(last?last.t:'');
   }else banner.hidden=true;
   if(!p){$('turnInfo').innerHTML='';return;}
-  if(!p.opened)req=`🔒 Игра не открыта — нужно ≥ ${OPEN_MIN} за ход (взято ${g.turnTotal||0})`;
+  if(!p.opened)req=`🔒 Вход в игру: нужно не менее ${OPEN_MIN} за ход (взято ${g.turnTotal||0})`;
   else{
-    const pit=getPit(p.score);
-    if(pit){const need=pit.hi-(p.score+(g.turnTotal||0));
-      req=need>0?`⛏ Яма ${pit.lo}–${pit.hi}: не хватает ${need} ${ptsWord(need)} до выхода`:'⛏ Яма позади — можно записывать';
-      if(need>0)cls+=' bad';}
-    else{const left=TARGET-(p.score+(g.turnTotal||0));
-      if(left<0){req=`⚠ Перебор на ${-left}: «Хватит» даст точку ${p.dots+1}/6`;cls+=' bad';}
+    const barrel=getBarrel(p.score);
+    if(barrel){
+      const left=p.barrelLeft!=null?p.barrelLeft:2;
+      req=`🛢 Бочка ${barrel.lo}–${barrel.hi}: выйти выше ${barrel.hi} — ${left===1?'остался 1 ход!':'осталось '+hodWord(left)}`;
+      if(left===1)cls+=' bad';
+    }else{
+      const left=TARGET-(p.score+(g.turnTotal||0));
+      if(left<0){req=`⚠ Перебор на ${-left}: «Хватит» даст точку ${p.dots+1}/${DOT_LIMIT}`;cls+=' bad';}
       else if(left===0){req='🏆 Ровно 1000 — жмите «Хватит»!';cls+=' win';}
-      else req=`До 1000 осталось ${left} ${ptsWord(left)}`;}
+      else req=`До 1000 осталось ${left} ${ptsWord(left)}`;
+    }
   }
   $('turnInfo').innerHTML=`<div class="who">Ходит: <b style="color:${PC[p.seat]}">${esc(p.name)}</b>${isMyTurn()?' — это вы':''}</div><div class="${cls}">${req}</div>`;
 }
@@ -563,7 +665,7 @@ function renderActions(){
   }
   if(!isMyTurn()){
     const w=document.createElement('div');w.className='waitNote';
-    w.textContent=p&&p.online?`Ждём хода ${p.name}…`:`⚠ ${p?p.name:'Игрок'} не в сети — можно позвать или нажать «Следующий игрок»`;
+    w.textContent=p&&p.online?`Ждём хода ${p.name}…`:`⚠ ${p?p.name:'Игрок'} не в сети — можно пропустить ход`;
     A.appendChild(w);
     if(p&&!p.online)A.appendChild(btn('ghost','Пропустить ➤',advanceTurn));
     return;
@@ -586,7 +688,7 @@ function renderActions(){
     const chk=canBank(),ns=p.score+g.turnTotal;
     let label=`💰 Хватит (+${g.turnTotal})`,cls='primary';
     if(ns===TARGET){label='🏆 Хватит — ровно 1000!';cls='goldWin';}
-    else if(ns>TARGET){label=`⚠️ Хватить — будет точка ${p.dots+1}/6`;cls='danger';}
+    else if(ns>TARGET){label=`⚠️ Хватить — будет точка ${p.dots+1}/${DOT_LIMIT}`;cls='danger';}
     const b=btn(cls,label,bank);if(!chk.ok)b.classList.add('blocked');
     A.appendChild(b);
     if(!chk.ok){const h=document.createElement('div');h.className='pickHint';h.textContent=chk.why;A.appendChild(h);}
@@ -620,18 +722,17 @@ function renderWin(){
 /* ---------- бросок встряхиванием телефона ---------- */
 const isTouch=window.matchMedia&&matchMedia('(pointer: coarse)').matches;
 let shakeReady=false,lastMotion={x:null,y:null,z:null},lastShakeAt=0;
-const SHAKE_THRESHOLD=18, SHAKE_COOLDOWN=1200; // подстройте при необходимости
+const SHAKE_THRESHOLD=18, SHAKE_COOLDOWN=1200;
 
 function enableShake(){
   if(!isTouch||shakeReady)return;
   if(typeof DeviceMotionEvent==='undefined')return;
   if(typeof DeviceMotionEvent.requestPermission==='function'){
-    // iOS: разрешение можно запросить только по жесту пользователя
     DeviceMotionEvent.requestPermission().then(res=>{
       if(res==='granted')attachMotion();
       else toast('Встряхивание недоступно: нет доступа к датчикам','warn');
     }).catch(()=>{});
-  }else attachMotion(); // Android и остальные
+  }else attachMotion();
 }
 function attachMotion(){
   if(shakeReady)return;
@@ -656,10 +757,9 @@ function shakeRoll(){
   if(navigator.vibrate)navigator.vibrate(60);
   doRoll();
 }
-// первый тап по экрану = жест, по которому iOS разрешает спросить доступ к датчикам
 document.addEventListener('pointerdown',()=>enableShake(),{once:true});
 
-/* ---------- игровые действия (пишет только текущий игрок) ---------- */
+/* ---------- игровые действия ---------- */
 function doRoll(){
   if(!isMyTurn()||!(room.game.phase==='roll'||room.game.phase==='choose')||animLock)return;
   const g=room.game,n=(g.dice||[]).length||5;
@@ -681,13 +781,22 @@ function finishRoll(faces){
   const diceObjs=faces.map(f=>({face:f,sel:false,scoring:false}));
   const upd={};
   if(pts===0){
-    const bolts=(p.bolts||0)+1;let score=p.score,extra='';
-    if(!p.opened&&bolts%3===0){score-=50;extra=' −50 за три неудачных открытия.';}
-    upd[`players/${myPid}/bolts`]=bolts;
-    upd[`players/${myPid}/score`]=score;
+    const streak=(p.zeroStreak||0)+1;
+    upd[`players/${myPid}/zeroStreak`]=streak;
+    let entryLeft=2;
+    if(streak>=ZERO_STREAK){
+      upd[`players/${myPid}/zeroStreak`]=0;
+      const r=applyDot(upd,myPid,`${p.name}: три нулевых броска подряд!`);
+      pushLogIn(upd,r.msg+` Очки хода (${g.turnTotal}) сгорают.`,'dot');
+      entryLeft=r.cutToBarrel?1:2;
+    }else{
+      pushLogIn(upd,`⚡ Пустой бросок у ${p.name}! Очки хода (${g.turnTotal}) сгорают. Нулевых подряд: ${streak}/${ZERO_STREAK}.`,'bad');
+    }
     upd.game={...baseWait(g),dice:diceObjs,busted:true};
-    pushLogIn(upd,`⚡ Болт у ${p.name}! Сгорает ${g.turnTotal} ${ptsWord(g.turnTotal)}.${extra}`,'bad');
+    applyBarrelTick(upd,myPid,entryLeft); // сорванный ход тоже считается при выходе из бочки
+    applySamosvalAll(upd);
   }else{
+    upd[`players/${myPid}/zeroStreak`]=0;
     const flags=scoringFlags(faces);
     diceObjs.forEach((d,i)=>{d.scoring=flags[i];d.sel=flags[i];});
     upd.game={...g,seq:g.seq+1,dice:diceObjs,phase:'pick',busted:false};
@@ -716,33 +825,48 @@ function bank(){
   const chk=canBank();if(!chk.ok){toast(chk.why,'warn');return;}
   const g=room.game,p=room.players[myPid],ns=p.score+g.turnTotal,upd={};
   if(ns>TARGET){
-    let dots=(p.dots||0)+1,score=p.score,msg=`${p.name}: перебор ${ns} > 1000 — Точка ${dots}/6`,kind='dot';
-    if(dots>=DOTS_LIMIT){dots=0;score=0;msg+=' — падение с бочки на 0!';kind='bad';}
-    upd[`players/${myPid}/dots`]=dots;upd[`players/${myPid}/score`]=score;
-    upd.game=baseWait(g);pushLogIn(upd,msg,kind);
+    // перебор: точка, ход не засчитывается, но ходом в бочке считается
+    const r=applyDot(upd,myPid,`${p.name}: перебор ${ns} вместо 1000.`);
+    pushLogIn(upd,r.msg+' Ход не засчитывается.','dot');
+    applyBarrelTick(upd,myPid,r.cutToBarrel?1:2);
+    applySamosvalAll(upd);
+    upd.game=baseWait(g);
     update(ref(db,`rooms/${roomCode}`),upd);return;
   }
-  upd[`players/${myPid}/score`]=ns;upd[`players/${myPid}/opened`]=true;
+  pushScore(upd,myPid,ns);
+  upd[`players/${myPid}/opened`]=true;
+  upd[`players/${myPid}/zeroStreak`]=0;
+  pushLogIn(upd,`💰 ${p.name} записывает ${g.turnTotal} ${ptsWord(g.turnTotal)} → ${ns}`,'bank');
   if(ns===TARGET){
     upd.meta={...room.meta,status:'finished',winner:myPid};
     upd.game={...g,seq:g.seq+1,phase:'over'};
     pushLogIn(upd,`🏆 ${p.name} набирает ровно 1000 и ПОБЕЖДАЕТ!`,'win');
     update(ref(db,`rooms/${roomCode}`),upd);return;
   }
+  // обгон: обогнанный срезается на ПРЕДЫДУЩЕЕ значение очков обгоняющего; в бочке обгон не срезает
   room.order.forEach(pid=>{
     if(pid===myPid)return;
     const o=room.players[pid];
-    if(g.startScore<o.score&&ns>o.score){upd[`players/${pid}/score`]=o.score-50;
-      pushLogIn(upd,`⚔ Обгон! ${o.name} теряет 50 (осталось ${o.score-50})`,'ovr');}
+    if(g.startScore<o.score&&ns>o.score){
+      if(getBarrel(o.score)){
+        pushLogIn(upd,`⚔ ${p.name} обгоняет ${o.name}, но тот в бочке — срез не применяется`,'ovr');
+        return;
+      }
+      pushScore(upd,pid,g.startScore);
+      if(g.startScore===0)upd[`players/${pid}/opened`]=false; // срез до 0 — снова входить в игру
+      pushLogIn(upd,`⚔ Обгон! ${o.name} срезается до ${g.startScore} (счёт ${p.name} до хода)`,'ovr');
+      const cb=getBarrel(g.startScore);
+      if(cb){
+        upd[`players/${pid}/inBarrel`]=cb.lo;
+        upd[`players/${pid}/barrelLeft`]=2;
+        upd[`players/${pid}/histMark`]=lastValidIndex(projHist(upd,pid));
+        pushLogIn(upd,`🛢 ${o.name} после среза попадает в бочку ${cb.lo}–${cb.hi}: 2 хода на выход`,'dot');
+      }
+    }
   });
-  room.order.forEach(pid=>{
-    const key=`players/${pid}/score`;
-    const val=(key in upd)?upd[key]:room.players[pid].score;
-    if(val===SAMOSVAL){upd[key]=0;upd[`players/${pid}/opened`]=true;
-      pushLogIn(upd,`🚛 Самосвал! ${room.players[pid].name} обнуляется (было 555)`,'dump');}
-  });
+  applyBarrelTick(upd,myPid,2);
+  applySamosvalAll(upd);
   upd.game=baseWait(g);
-  pushLogIn(upd,`💰 ${p.name} записывает ${g.turnTotal} ${ptsWord(g.turnTotal)} → ${ns}`,'bank');
   update(ref(db,`rooms/${roomCode}`),upd);
 }
 function advanceTurn(){
@@ -764,10 +888,20 @@ function scheduleAutoAdvance(){
 $('startGameBtn').onclick=()=>{
   if(room.meta.createdBy!==myPid||room.order.length<2)return;
   const upd={meta:{...room.meta,status:'playing'}};
-  room.order.forEach(pid=>{['score','bolts','dots'].forEach(k=>upd[`players/${pid}/${k}`]=0);upd[`players/${pid}/opened`]=false;});
-  const first=room.order[0];
+  room.order.forEach(pid=>{
+    ['score','bolts','dots','zeroStreak'].forEach(k=>upd[`players/${pid}/${k}`]=0);
+    upd[`players/${pid}/opened`]=false;
+    upd[`players/${pid}/hist`]=null;
+    upd[`players/${pid}/histMark`]=null;
+    clearBarrelState(upd,pid);
+  });
+  // очередность первого хода разыгрывается
+  const order=[...room.order];
+  for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+  upd.order=order;
+  const first=order[0];
   upd.game={seq:1,current:first,phase:'roll',dice:[],tray:[],turnTotal:0,startScore:0,hot:false,busted:false,waitTs:0};
-  pushLogIn(upd,'Игра началась! Цель — ровно 1000.','turn');
+  pushLogIn(upd,'Игра началась! Очередность ходов разыграна жребием. Цель — ровно 1000.','turn');
   pushLogIn(upd,`— Ход: ${room.players[first].name} —`,'turn');
   update(ref(db,`rooms/${roomCode}`),upd);
 };
@@ -797,7 +931,6 @@ $('nameInput').value=localStorage.getItem('tyscha_name')||'';
   if(!s.exists())return;
   const saved=localStorage.getItem('tyscha_pid_'+code);
   if(saved&&s.val().players&&s.val().players[saved]){joinRoom(code);return;}
-  // новый гость по пригласительной ссылке: подставляем код, остаётся ввести имя
   if(validCode(hash)){
     $('codeInput').value=hash;
     $('nameInput').focus();
