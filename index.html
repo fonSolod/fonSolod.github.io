@@ -769,8 +769,7 @@ document.addEventListener('pointerdown',()=>enableShake(),{once:true});
 /* ---------- уведомления о ходе ---------- */
 let notifReg=null;
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('notify-sw.js').then(r=>{notifReg=r;}).catch(()=>{});
-}
+  navigator.serviceWorker.register('notify-sw.js').then(r=>{notifReg=r;}).catch(e=>console.warn('notify-sw.js не зарегистрирован:',e));}
 function notifGranted(){return typeof Notification!=='undefined'&&Notification.permission==='granted';}
 function requestNotif(){
   if(typeof Notification==='undefined')return;
@@ -799,17 +798,32 @@ function stopBlink(){
   if(titleTimer){clearInterval(titleTimer);titleTimer=null;document.title='Тыща · 1000 — сетевая игра';}
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)stopBlink();});
+let audioCtx=null;
+function tone(f,dur,type,vol,when){
+  if(!soundOn)return;
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    const t=audioCtx.currentTime+(when||0);
+    const o=audioCtx.createOscillator();o.type=type||'triangle';o.frequency.value=f;
+    const g=audioCtx.createGain();g.gain.setValueAtTime(vol||.12,t);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur+.03);
+  }catch(e){}
+}
 function soundTurn(){tone(880,.15,'triangle',.12);tone(1174,.22,'triangle',.12,.16);}
 function handleTurnChange(prev){
-  if(!room||!room.game||!myPid||room.meta.status!=='playing')return;
-  const nowCur=room.game.current,prevCur=prev&&prev.game?prev.game.current:null;
-  if(nowCur===myPid&&prevCur!==myPid){
-    soundTurn();
-    if(document.hidden){
-      blinkTitle();
-      if(notifGranted())showTurnNotification();
+  try{
+    if(!room||!room.game||!myPid||room.meta.status!=='playing')return;
+    const nowCur=room.game.current,prevCur=prev&&prev.game?prev.game.current:null;
+    if(nowCur===myPid&&prevCur!==myPid){
+      if(document.hidden){
+        blinkTitle();
+        if(notifGranted())showTurnNotification();
+      }
+      soundTurn();
     }
-  }
+  }catch(e){console.error('handleTurnChange:',e);}
 }
 $('btnNotify').onclick=()=>{
   if(typeof Notification==='undefined'){toast('Браузер не поддерживает уведомления','warn');return;}
@@ -818,7 +832,7 @@ $('btnNotify').onclick=()=>{
     toast(p==='granted'?'Уведомления включены 🔔':'Уведомления отклонены','gold');
   });
 };
- 
+ updateNotifIcon();
 /* ---------- игровые действия ---------- */
 function doRoll(){
   stopBlink();
