@@ -160,6 +160,16 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .cfgBox ol{padding-left:20px;line-height:2;font-size:14px;color:#d7e6dd}
 @media(max-width:900px){#gameGrid{grid-template-columns:1fr}#log{height:220px}}
 @media(max-width:560px){.pcard{min-width:calc(50% - 6px)}}
+/* потенциальный счёт */
+.pot{font-size:15px;font-weight:700;color:var(--gold2);background:rgba(245,196,81,.14);border:1px solid rgba(245,196,81,.5);border-radius:8px;padding:2px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+.pot.danger{color:#ffb3a6;background:rgba(255,122,107,.16);border-color:rgba(255,122,107,.6)}
+.pot.win{color:#a5f0c3;background:rgba(125,227,161,.16);border-color:rgba(125,227,161,.6)}
+/* трей: комбинации столбиками */
+#trayBox{align-items:flex-end}
+.die.mini{width:26px;height:26px}
+.trayCol{display:flex;flex-direction:column;gap:4px;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:6px}
+.colSum{font-family:'Unbounded';font-size:11px;font-weight:700;color:var(--gold2)}
+.trayPlus{color:var(--muted);font-weight:700;font-size:16px;align-self:center}
 </style>
 </head>
 <body>
@@ -553,14 +563,26 @@ function renderGame(prev){
 }
 function renderPlayers(){
   const box=$('players');box.innerHTML='';
+  const g=room.game;
   room.order.forEach(pid=>{
     const p=room.players[pid];if(!p)return;
-    const barrel=getBarrel(p.score),act=room.game.current===pid;
+    const barrel=getBarrel(p.score),act=g&&g.current===pid;
     const c=document.createElement('div');
     c.className='pcard'+(act?' active':'')+(barrel?' bcard':'');
     c.style.setProperty('--pc',PC[p.seat]);
     const hist=p.hist||[];
-    if(hist.length)c.title='История записей: '+(p.opened?'':'(не открыт) ') + hist.map(e=>e.x?'✗'+e.v:e.v).join(' → ');
+    if(hist.length)c.title='История записей: '+(p.opened?'':'(не открыт) ')+hist.map(e=>e.x?'✗'+e.v:e.v).join(' → ');
+    // потенциальный счёт активного игрока
+    let potHtml='';
+    if(act&&room.meta.status==='playing'&&g&&(g.phase==='pick'||g.phase==='choose')){
+      let pot=p.score+(g.turnTotal||0);
+      if(g.phase==='pick'){
+        const sel=(g.dice||[]).filter(d=>d.sel);
+        pot+=calcScore(sel.map(d=>d.face));
+      }
+      const pcls=(getBarrel(pot)||pot>TARGET)?'pot danger':(pot===TARGET?'pot win':'pot');
+      potHtml=`<span class="${pcls}" title="Счёт + взято за ход + выбранные кубики">→ ${pot}</span>`;
+    }
     const chips=[];
     if(!p.opened)chips.push('<span class="chip lock">🔒 вход ≥50</span>');
     if(p.inBarrel!=null)chips.push(`<span class="chip barrel">🛢 бочка ${p.inBarrel}–${p.inBarrel+100} · ${p.barrelLeft!=null?hodWord(p.barrelLeft):''}</span>`);
@@ -571,7 +593,7 @@ function renderPlayers(){
     c.innerHTML=`<div class="phead"><span class="pdot"></span><span class="pname">${esc(p.name)}</span>
       ${act?'<span class="go">ходит</span>':''}
       <span class="odot" style="background:${p.online?'#7de3a1':'#5a6f64'}"></span></div>
-      <div class="pscore">${p.score}</div><div class="chips">${chips.join('')}</div>`;
+      <div class="pscore">${p.score} ${potHtml}</div><div class="chips">${chips.join('')}</div>`;
     box.appendChild(c);
   });
 }
@@ -619,6 +641,7 @@ function maybeIncomingAnim(prev){
   const g=room.game;
   if(g.seq===prev.game.seq)return;
   if(g.phase==='pick'||(g.phase==='wait'&&(g.dice||[]).length)){
+    playRollSound();
     const els=[...document.querySelectorAll('#diceBox .die:not(.ghost)')];
     if(!els.length)return;
     animLock=true;
@@ -628,9 +651,16 @@ function maybeIncomingAnim(prev){
 }
 function renderTray(){
   const tb=$('trayBox');tb.innerHTML='';
-  const tray=room.game.tray||[];
-  if(!tray.length)tb.innerHTML='<span class="trayEmpty">взятые за ход кубики появятся здесь</span>';
-  else tray.forEach(f=>tb.appendChild(buildDieEl(f,'mini')));
+  const groups=(room.game.tray||[]).map(x=>Array.isArray(x)?x:[x]).filter(g=>g.length);
+  if(!groups.length){tb.innerHTML='<span class="trayEmpty">взятые за ход кубики появятся здесь</span>';}
+  else groups.forEach((grp,gi)=>{
+    if(gi>0){const plus=document.createElement('span');plus.className='trayPlus';plus.textContent='+';tb.appendChild(plus);}
+    const col=document.createElement('div');col.className='trayCol';
+    grp.forEach(f=>col.appendChild(buildDieEl(f,'mini')));
+    const sum=document.createElement('div');sum.className='colSum';sum.textContent=calcScore(grp);
+    col.appendChild(sum);
+    tb.appendChild(col);
+  });
   $('turnTotalVal').textContent=room.game.turnTotal||0;
 }
 function renderTurnInfo(){
@@ -672,9 +702,8 @@ function renderActions(){
   }
   if(!isMyTurn()){
     const w=document.createElement('div');w.className='waitNote';
-    w.textContent=p&&p.online?`Ждём хода ${p.name}…`:`⚠ ${p?p.name:'Игрок'} не в сети — можно пропустить ход`;
+    w.textContent=p&&p.online?`Ждём хода ${p.name}…`:`⚠ ${p?p.name:'Игрок'} не в сети`;
     A.appendChild(w);
-    if(p&&!p.online)A.appendChild(btn('ghost','Пропустить ➤',advanceTurn));
     return;
   }
   if(g.phase==='roll'){
@@ -702,11 +731,16 @@ function renderActions(){
     if(isTouch){const h=document.createElement('div');h.className='pickHint';h.textContent='📱 Переброс — тоже встряхиванием';A.appendChild(h);}
   }
 }
+let lastLogCount=0;
 function renderLog(){
-  const list=$('logList');list.innerHTML='';
-  Object.values(room.log||{}).sort((a,b)=>a.ts-b.ts).slice(-60).forEach(e=>{
+  const logBox=$('log'),list=$('logList');
+  const entries=Object.values(room.log||{}).sort((a,b)=>a.ts-b.ts).slice(-60);
+  list.innerHTML='';
+  entries.forEach(e=>{
     const d=document.createElement('div');d.className='entry '+(e.k||'');d.textContent=e.t;list.appendChild(d);
   });
+  const total=Object.keys(room.log||{}).length;
+  if(total!==lastLogCount){lastLogCount=total;logBox.scrollTop=logBox.scrollHeight;}
 }
 function checkToast(){
   const entries=Object.values(room.log||{}).sort((a,b)=>a.ts-b.ts);
@@ -837,6 +871,7 @@ $('btnNotify').onclick=()=>{
 function doRoll(){
   stopBlink();
   if(!isMyTurn()||!(room.game.phase==='roll'||room.game.phase==='choose')||animLock)return;
+  playRollSound();
   const g=room.game,n=(g.dice||[]).length||5;
   animLock=true;renderActions();
   const box=$('diceBox');box.innerHTML='';
@@ -890,7 +925,7 @@ function take(){
   const pts=calcScore(sel.map(d=>d.face));
   if(pts<5){toast('Выбранные кубики не приносят очков','warn');return;}
   const remain=g.dice.filter(d=>!d.sel);
-  const upd={game:{...g,seq:g.seq+1,dice:remain,tray:[...(g.tray||[]),...sel.map(d=>d.face)],
+  const upd={game:{...g,seq:g.seq+1,dice:remain,tray:[...(g.tray||[]),sel.map(d=>d.face)],
     turnTotal:g.turnTotal+pts,phase:remain.length?'choose':'roll',hot:!remain.length}};
   pushLogIn(upd,`${p.name} берёт ${pts} ${ptsWord(pts)} (за ход ${upd.game.turnTotal})`,'take');
   update(ref(db,`rooms/${roomCode}`),upd);
@@ -995,6 +1030,20 @@ $('modalClose').onclick=()=>$('modal').hidden=true;
 $('modal').onclick=e=>{if(e.target.id==='modal')$('modal').hidden=true;};
 let soundOn=true;$('btnSound').onclick=()=>{soundOn=!soundOn;$('btnSound').textContent=soundOn?'🔊':'🔇';};
 
+/* ---------- звук броска ---------- */
+const ROLL_SOUND_URL='dice.mp3'; // ← имя вашего файла; mp3/ogg/wav
+let rollAudio=null;
+function playRollSound(){
+  if(!soundOn)return;
+  try{
+    if(!rollAudio){rollAudio=new Audio(ROLL_SOUND_URL);rollAudio.volume=.85;}
+    rollAudio.currentTime=0;
+    rollAudio.play().catch(()=>{});
+  }catch(e){}
+}
+
+
+ 
 /* ---------- автовход и код из пригласительной ссылки ---------- */
 $('nameInput').value=localStorage.getItem('tyscha_name')||'';
 (async()=>{
