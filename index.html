@@ -508,6 +508,7 @@ function listen(){
     const data=snap.val();
     if(!data){room=null;showScreen('join');toast('Комната удалена','warn');return;}
     const prev=room;room=data;
+    handleTurnChange(prev);
     checkToast();renderScreen(prev);
   });
 }
@@ -820,6 +821,7 @@ $('btnNotify').onclick=()=>{
  
 /* ---------- игровые действия ---------- */
 function doRoll(){
+  stopBlink();
   if(!isMyTurn()||!(room.game.phase==='roll'||room.game.phase==='choose')||animLock)return;
   const g=room.game,n=(g.dice||[]).length||5;
   animLock=true;renderActions();
@@ -946,6 +948,7 @@ function scheduleAutoAdvance(){
 /* ---------- старт / финиш ---------- */
 $('startGameBtn').onclick=()=>{
   if(room.meta.createdBy!==myPid||room.order.length<2)return;
+  requestNotif();
   const upd={meta:{...room.meta,status:'playing'}};
   room.order.forEach(pid=>{
     ['score','bolts','dots','zeroStreak'].forEach(k=>upd[`players/${pid}/${k}`]=0);
@@ -970,9 +973,8 @@ $('btnLobby').onclick=()=>{
 };
 
 /* ---------- прочее ---------- */
-$('createBtn').onclick=()=>createRoom();
-$('joinBtn').onclick=()=>{const c=$('codeInput').value.trim().toUpperCase();if(validCode(c))joinRoom(c);else toast('Введите код из 4 символов','warn');};
-$('codeChip').onclick=copyInvite;
+$('createBtn').onclick=()=>{requestNotif();createRoom();};
+$('joinBtn').onclick=()=>{requestNotif();const c=$('codeInput').value.trim().toUpperCase();if(validCode(c))joinRoom(c);else toast('Введите код из 4 символов','warn');};$('codeChip').onclick=copyInvite;
 $('btnLeaveGame').onclick=()=>{roomCode=null;room=null;$('winOverlay').hidden=true;showScreen('join');};
 $('btnRules').onclick=()=>$('modal').hidden=false;
 $('modalClose').onclick=()=>$('modal').hidden=true;
