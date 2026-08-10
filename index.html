@@ -209,6 +209,7 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
     <div id="topbar">
       <div class="brand">ТЫЩА · 1000</div>
       <button class="codeChip" id="codeChip" title="Скопировать ссылку">····</button>
+      <button class="tbtn" id="btnNotify" title="Уведомления о ходе">🔕</button>
       <div class="topBtns">
         <button class="tbtn" id="btnSound">🔊</button>
         <button class="tbtn" id="btnRules">📖 Правила</button>
@@ -764,6 +765,59 @@ function shakeRoll(){
 }
 document.addEventListener('pointerdown',()=>enableShake(),{once:true});
 
+/* ---------- уведомления о ходе ---------- */
+let notifReg=null;
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('notify-sw.js').then(r=>{notifReg=r;}).catch(()=>{});
+}
+function notifGranted(){return typeof Notification!=='undefined'&&Notification.permission==='granted';}
+function requestNotif(){
+  if(typeof Notification==='undefined')return;
+  if(Notification.permission==='default'){
+    Notification.requestPermission().then(updateNotifIcon);
+  }
+  updateNotifIcon();
+}
+function updateNotifIcon(){
+  const b=$('btnNotify');
+  if(b)b.textContent=notifGranted()?'🔔':'🔕';
+}
+function showTurnNotification(){
+  const opts={body:'Пора бросать кубики 🎲',tag:'tyscha-turn',requireInteraction:true,data:{url:location.href}};
+  if(notifReg&&notifReg.showNotification){notifReg.showNotification('Ваш ход в «Тыще»!',opts);return;}
+  try{new Notification('Ваш ход в «Тыще»!',opts);}catch(e){}
+}
+let titleTimer=null;
+function blinkTitle(){
+  if(titleTimer)return;
+  const base='Тыща · 1000';
+  let flip=false;
+  titleTimer=setInterval(()=>{document.title=flip?base:'❗ Ваш ход — Тыща';flip=!flip;},1200);
+}
+function stopBlink(){
+  if(titleTimer){clearInterval(titleTimer);titleTimer=null;document.title='Тыща · 1000 — сетевая игра';}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)stopBlink();});
+function soundTurn(){tone(880,.15,'triangle',.12);tone(1174,.22,'triangle',.12,.16);}
+function handleTurnChange(prev){
+  if(!room||!room.game||!myPid||room.meta.status!=='playing')return;
+  const nowCur=room.game.current,prevCur=prev&&prev.game?prev.game.current:null;
+  if(nowCur===myPid&&prevCur!==myPid){
+    soundTurn();
+    if(document.hidden){
+      blinkTitle();
+      if(notifGranted())showTurnNotification();
+    }
+  }
+}
+$('btnNotify').onclick=()=>{
+  if(typeof Notification==='undefined'){toast('Браузер не поддерживает уведомления','warn');return;}
+  Notification.requestPermission().then(p=>{
+    updateNotifIcon();
+    toast(p==='granted'?'Уведомления включены 🔔':'Уведомления отклонены','gold');
+  });
+};
+ 
 /* ---------- игровые действия ---------- */
 function doRoll(){
   if(!isMyTurn()||!(room.game.phase==='roll'||room.game.phase==='choose')||animLock)return;
