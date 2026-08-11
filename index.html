@@ -368,7 +368,16 @@ function canBank(){
   if(!p.opened&&g.turnTotal<OPEN_MIN)return{ok:false,why:`Вход в игру: нужно не менее ${OPEN_MIN} очков за ход (взято ${g.turnTotal})`};
   return{ok:true};
 }
-function pushLogIn(upd,t,k){upd[`log/l${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`]={t,k,ts:Date.now()};}
+let logSeq=0;
+function pushLogIn(upd,t,k){
+  const ts=Date.now();
+  upd[`log/l${ts.toString(36)}${Math.random().toString(36).slice(2,6)}`]={t,k,ts,s:++logSeq};
+  const entries=Object.entries((room&&room.log)||{});
+  if(entries.length>60){
+    entries.sort((a,b)=>(a[1].ts||0)-(b[1].ts||0));
+    entries.slice(0,entries.length-60).forEach(([key])=>{upd['log/'+key]=null;});
+  }
+}
 function baseWait(g){return{seq:g.seq+1,current:myPid,phase:'wait',dice:[],tray:g.tray||[],turnTotal:0,startScore:g.startScore,hot:false,busted:false,waitTs:Date.now()};}
 const projOf=(upd,pid,k)=>(`players/${pid}/${k}` in upd)?upd[`players/${pid}/${k}`]:room.players[pid][k];
 
@@ -659,8 +668,8 @@ function renderTurnInfo(){
   let req='',cls='req';
   const banner=$('banner');
   if(g.phase==='wait'){
-    const entries=Object.values(room.log||{}).sort((a,b)=>a.ts-b.ts);
-    const last=entries[entries.length-1];
+const entries=Object.values(room.log||{}).sort((a,b)=>a.ts-b.ts||(a.s||0)-(b.s||0));
+   const last=entries[entries.length-1];
     banner.hidden=false;banner.textContent=(g.busted?'💥 ':'')+(last?last.t:'');
   }else banner.hidden=true;
   if(!p){$('turnInfo').innerHTML='';return;}
@@ -718,8 +727,7 @@ function renderActions(){
 let lastLogCount=0;
 function renderLog(){
   const logBox=$('log'),list=$('logList');
-  const entries=Object.values(room.log||{}).sort((a,b)=>b.ts-a.ts).slice(0,60);
-  list.innerHTML='';
+const entries=Object.values(room.log||{}).sort((a,b)=>b.ts-a.ts||(b.s||0)-(a.s||0)).slice(0,60);  list.innerHTML='';
   entries.forEach(e=>{
     const d=document.createElement('div');d.className='entry '+(e.k||'');d.textContent=e.t;list.appendChild(d);
   });
@@ -727,8 +735,7 @@ function renderLog(){
   if(total!==lastLogCount){lastLogCount=total;logBox.scrollTop=0;}
 }
 function checkToast(){
-  const entries=Object.values(room.log||{}).sort((a,b)=>a.ts-b.ts);
-  const last=entries[entries.length-1];
+const entries=Object.values(room.log||{}).sort((a,b)=>a.ts-b.ts||(a.s||0)-(b.s||0));  const last=entries[entries.length-1];
   if(!last||last.ts<=joinedAt||last.ts<=lastToastTs)return;
   if(['bad','dot','dump','ovr','win'].includes(last.k)){
     toast(last.t,last.k==='win'?'gold':(last.k==='ovr'?'':'bad'));lastToastTs=last.ts;
