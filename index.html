@@ -253,19 +253,20 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 
 <div id="modal" hidden><div class="modalBox">
   <h2>📖 Правила игры в «Тысячу»</h2>
-  <ul>
-    <li><b>Цель</b> — набрать ровно <b>1000 очков</b>. Очередность первого хода разыгрывается (в приложении — жребием).</li>
-    <li>Ход: бросок 5 кубиков. Очковые кубики откладываются (выбор кликом), остальные перебрасываются — либо «Хватит» и запись очков. Если все 5 очковые — обязательный бросок всех пяти.</li>
-    <li><b>Вход в игру:</b> первая запись — <b>не менее 50</b> очков за ход.</li>
-    <li><b>Нулевой бросок:</b> очки хода сгорают. <b>Три нулевых броска подряд — точка</b>.</li>
-    <li><b>Бочки 195–295 и 695–795</b> (границы не входят): оказавшись в бочке, нужно выйти за <b>два хода</b> (ход с перебором 1000 тоже считается). При падении с бочки записи, сделанные в бочке, зачёркиваются, и счёт возвращается к значению <b>до входа в бочку</b>.</li>
-    <li><b>Обгон:</b> обогнанный игрок «срезается» на ваш счёт <b>до хода</b>. Игроков в бочке обгон не срезает. Срезанный до 0 входит в игру заново.</li>
-    <li><b>Самосвал:</b> ровно 555 — все очки списываются, входить в игру не нужно.</li>
-    <li><b>Перебор 1000:</b> точка, ход не засчитывается.</li>
-    <li>По каждому игроку ведётся <b>последовательная запись очков</b>. <b>Три точки → болт</b>: последние 3 записи зачёркиваются, счёт откатывается к последней незачёркнутой записи. Если срез привёл в бочку — на выход <b>один ход</b>. <b>Три болта</b> — списываются все очки.</li>
-    <li>📱 На телефоне бросок и переброс — встряхиванием.</li>
-    <li><i>Правило «кость упала со стола» в цифровой версии не отслеживается.</i></li>
-  </ul>
+<ul>
+<li><b>Цель</b> — набрать ровно <b>1000 очков</b>. Очередность первого хода разыгрывается (в приложении — жребием).</li>
+<li>Ход: бросок 5 кубиков. Выпавшие очковые комбинации <b>берутся автоматически</b> (зачёт — максимальная комбинация), остальные кубики перебрасываются — либо «Хватить». Если все 5 очковые — обязательный бросок всех пяти.</li>
+<li><b>Вход в игру:</b> первая запись — не менее 50 очков за ход. До входа в игру нулевые ходы не считаются.</li>
+<li><b>Нулевой ход</b> (ход не принёс очков): очки хода сгорают. <b>Три нулевых хода подряд — точка</b>.</li>
+<li><b>Бочки 195–295 и 695–795</b> (границы не входят): выйти нужно за <b>два хода</b>. При падении записи, сделанные в бочке, зачёркиваются, счёт возвращается к значению <b>до входа в бочку</b>.</li>
+<li><b>Обгон:</b> обогнанный срезается до <b>своего предыдущего значения</b> (последняя запись зачёркивается). <b>Равный счёт — тоже обгон.</b> Игроков в бочке обгон не срезает. Срезанный до 0 входит в игру заново.</li>
+<li><b>Самосвал:</b> потенциальный счёт ровно 555 — срабатывает автоматически, все очки списываются, входить в игру не нужно.</li>
+<li><b>Перебор 1000</b> (потенциальный счёт) — точка автоматически, ход не засчитывается.</li>
+<li><b>Ровно 1000</b> (потенциальный счёт) — победа автоматически.</li>
+<li>По каждому игроку ведётся <b>последовательная запись очков</b>. <b>Три точки → болт</b>: последние 3 записи зачёркиваются, счёт откатывается к последней незачёркнутой записи. Если срез привёл в бочку — на выход <b>один ход</b>. <b>Три болта</b> — списываются все очки.</li>
+<li>📱 На телефоне бросок и переброс — встряхиванием.</li>
+<li><i>Правило «кость упала со стола» в цифровой версии не отслеживается.</i></li>
+</ul>
   <h4>Комбинации (зачёт — максимальная)</h4>
   <table>
     <tr><td>Кубик «1» / «5»</td><td>10 / 5</td></tr>
@@ -573,16 +574,12 @@ function renderPlayers(){
     const hist=p.hist||[];
     if(hist.length)c.title='История записей: '+(p.opened?'':'(не открыт) ')+hist.map(e=>e.x?'✗'+e.v:e.v).join(' → ');
     // потенциальный счёт активного игрока
-    let potHtml='';
-    if(act&&room.meta.status==='playing'&&g&&(g.phase==='pick'||g.phase==='choose')){
-      let pot=p.score+(g.turnTotal||0);
-      if(g.phase==='pick'){
-        const sel=(g.dice||[]).filter(d=>d.sel);
-        pot+=calcScore(sel.map(d=>d.face));
-      }
-      const pcls=(getBarrel(pot)||pot>TARGET)?'pot danger':(pot===TARGET?'pot win':'pot');
-      potHtml=`<span class="${pcls}" title="Счёт + взято за ход + выбранные кубики">→ ${pot}</span>`;
-    }
+let potHtml='';
+if(act&&room.meta.status==='playing'&&g&&g.turnTotal>0&&(g.phase==='choose'||g.phase==='roll')){
+  const pot=p.score+g.turnTotal;
+  const pcls=(getBarrel(pot)||pot>TARGET)?'pot danger':(pot===TARGET?'pot win':'pot');
+  potHtml=`<span class="${pcls}" title="Счёт + взято за ход">→ ${pot}</span>`;
+}
     const chips=[];
     if(!p.opened)chips.push('<span class="chip lock">🔒 вход ≥50</span>');
     if(p.inBarrel!=null)chips.push(`<span class="chip barrel">🛢 бочка ${p.inBarrel}–${p.inBarrel+100} · ${p.barrelLeft!=null?hodWord(p.barrelLeft):''}</span>`);
@@ -619,14 +616,8 @@ function renderDice(){
   const box=$('diceBox');box.innerHTML='';
   const dice=room.game.dice||[];
   if(dice.length){
-    dice.forEach((d,i)=>{
+    dice.forEach(d=>{
       const de=buildDieEl(d.face,'big');
-      if(room.game.phase==='pick'){
-        de.classList.add('pickable');
-        de.classList.toggle('sel',!!d.sel);
-        de.classList.toggle('dim',!d.scoring&&!d.sel);
-        if(isMyTurn())de.addEventListener('click',()=>toggleDie(i));
-      }
       if(room.game.busted)de.classList.add('bust');
       box.appendChild(de);
     });
@@ -640,7 +631,7 @@ function maybeIncomingAnim(prev){
   if(!prev||!prev.game||animLock||isMyTurn())return;
   const g=room.game;
   if(g.seq===prev.game.seq)return;
-  if(g.phase==='pick'||(g.phase==='wait'&&(g.dice||[]).length)){
+  if(g.phase==='choose'||(g.phase==='wait'&&(g.dice||[]).length)){
     playRollSound();
     const els=[...document.querySelectorAll('#diceBox .die:not(.ghost)')];
     if(!els.length)return;
@@ -684,7 +675,7 @@ function renderTurnInfo(){
       const left=TARGET-(p.score+(g.turnTotal||0));
       if(left<0){req=`⚠ Перебор на ${-left}: «Хватит» даст точку ${p.dots+1}/${DOT_LIMIT}`;cls+=' bad';}
       else if(left===0){req='🏆 Ровно 1000 — жмите «Хватит»!';cls+=' win';}
-      else req=`До 1000 осталось ${left} ${ptsWord(left)}`;
+      else req=`Осталось ${left} ${ptsWord(left)}`;
     }
   }
   $('turnInfo').innerHTML=`<div class="who">Ходит: <b style="color:${PC[p.seat]}">${esc(p.name)}</b>${isMyTurn()?' — это вы':''}</div><div class="${cls}">${req}</div>`;
@@ -711,19 +702,12 @@ function renderActions(){
     const label=(g.hot&&g.turnTotal>0)?'🎲 Обязательный бросок — все 5 кубиков':`🎲 Бросить ${n===5?'5 кубиков':n+' '+kubWord(n)}`;
     const b=btn('primary',label,doRoll);if(animLock)b.classList.add('blocked');A.appendChild(b);
     if(isTouch){const h=document.createElement('div');h.className='pickHint';h.textContent='📱 …или встряхните телефон';A.appendChild(h);}
-  }else if(g.phase==='pick'){
-    const sel=(g.dice||[]).filter(d=>d.sel),pts=calcScore(sel.map(d=>d.face));
-    const b=btn('primary',pts>=5?`Взять ${pts} ${ptsWord(pts)}`:'Выберите очковые кубики',take);
-    if(pts<5){b.disabled=true;b.classList.add('blocked');}
-    A.appendChild(b);
-    const h=document.createElement('div');h.className='pickHint';
-    h.textContent='Кликните по кубику, чтобы взять его или отправить в переброс';A.appendChild(h);
   }else if(g.phase==='choose'){
     const n=(g.dice||[]).length;
     A.appendChild(btn('ghost',`🎲 Бросить ещё (${n} ${kubWord(n)})`,doRoll));
     const chk=canBank(),ns=p.score+g.turnTotal;
     let label=`💰 Хватит (+${g.turnTotal})`,cls='primary';
-    if(ns===TARGET){label='🏆 Хватит — ровно 1000!';cls='goldWin';}
+    if(ns===TARGET){label='🏆 Хватить — ровно 1000!';cls='goldWin';}
     else if(ns>TARGET){label=`⚠️ Хватить — будет точка ${p.dots+1}/${DOT_LIMIT}`;cls='danger';}
     const b=btn(cls,label,bank);if(!chk.ok)b.classList.add('blocked');
     A.appendChild(b);
@@ -891,51 +875,69 @@ function finishRoll(faces){
   const diceObjs=faces.map(f=>({face:f,sel:false,scoring:false}));
   const upd={};
   if(pts===0){
-    const streak=(p.zeroStreak||0)+1;
-    upd[`players/${myPid}/zeroStreak`]=streak;
     let entryLeft=2;
-    if(streak>=ZERO_STREAK){
-      upd[`players/${myPid}/zeroStreak`]=0;
-      const r=applyDot(upd,myPid,`${p.name}: три нулевых броска подряд!`);
-      pushLogIn(upd,r.msg+` Очки хода (${g.turnTotal}) сгорают.`,'dot');
-      entryLeft=r.cutToBarrel?1:2;
+    if(p.opened){ // до входа в игру нулевые ходы не считаем
+      const streak=(p.zeroStreak||0)+1;
+      upd[`players/${myPid}/zeroStreak`]=streak;
+      if(streak>=ZERO_STREAK){
+        upd[`players/${myPid}/zeroStreak`]=0;
+        const r=applyDot(upd,myPid,`${p.name}: три нулевых хода подряд!`);
+        pushLogIn(upd,r.msg+` Очки хода (${g.turnTotal}) сгорают.`,'dot');
+        entryLeft=r.cutToBarrel?1:2;
+      }else{
+        pushLogIn(upd,`⚡ Нулевой ход у ${p.name}! Очки хода (${g.turnTotal}) сгорают. Нулевых ходов подряд: ${streak}/${ZERO_STREAK}.`,'bad');
+      }
     }else{
-      pushLogIn(upd,`⚡ Пустой бросок у ${p.name}! Очки хода (${g.turnTotal}) сгорают. Нулевых подряд: ${streak}/${ZERO_STREAK}.`,'bad');
+      pushLogIn(upd,`⚡ Нулевой ход у ${p.name}! Очки хода (${g.turnTotal}) сгорают. До входа в игру нулевые ходы не считаются.`,'bad');
     }
     upd.game={...baseWait(g),dice:diceObjs,busted:true};
-    applyBarrelTick(upd,myPid,entryLeft); // сорванный ход тоже считается при выходе из бочки
+    applyBarrelTick(upd,myPid,entryLeft);
     applySamosvalAll(upd);
   }else{
-    upd[`players/${myPid}/zeroStreak`]=0;
+    // очковые кубики берутся автоматически (максимальная комбинация)
     const flags=scoringFlags(faces);
-    diceObjs.forEach((d,i)=>{d.scoring=flags[i];d.sel=flags[i];});
-    upd.game={...g,seq:g.seq+1,dice:diceObjs,phase:'pick',busted:false};
-    pushLogIn(upd,`${p.name} бросает [${faces.join(' ')}] → ${pts} ${ptsWord(pts)}`,'take');
+    const takenF=faces.filter((f,i)=>flags[i]);
+    const takenPts=calcScore(takenF);
+    const newTurnTotal=g.turnTotal+takenPts;
+    const newTray=[...(g.tray||[]),takenF];
+    const pot=p.score+newTurnTotal; // потенциальный счёт
+    pushLogIn(upd,`${p.name} бросает [${faces.join(' ')}] → ${pts} ${ptsWord(pts)} (за ход ${newTurnTotal})`,'take');
+    if(pot===TARGET){ // автопобеда
+      pushScore(upd,myPid,TARGET);
+      upd[`players/${myPid}/opened`]=true;
+      upd[`players/${myPid}/zeroStreak`]=0;
+      upd.meta={...room.meta,status:'finished',winner:myPid};
+      upd.game={...g,seq:g.seq+1,phase:'over',dice:[],tray:newTray,turnTotal:newTurnTotal};
+      pushLogIn(upd,`🏆 ${p.name} набирает ровно 1000 и ПОБЕЖДАЕТ!`,'win');
+    }else if(pot>TARGET){ // автоточка
+      const r=applyDot(upd,myPid,`${p.name}: перебор ${pot} вместо 1000.`);
+      pushLogIn(upd,r.msg+' Ход не засчитывается.','dot');
+      upd.game={...baseWait(g),tray:newTray};
+      applyBarrelTick(upd,myPid,r.cutToBarrel?1:2);
+      applySamosvalAll(upd);
+    }else if(pot===SAMOSVAL){ // автосамосвал
+      pushScore(upd,myPid,0);
+      upd[`players/${myPid}/opened`]=true;
+      upd[`players/${myPid}/zeroStreak`]=0;
+      clearBarrelState(upd,myPid);
+      pushLogIn(upd,`🚛 Самосвал! ${p.name} набирает 555 — все очки списываются.`,'dump');
+      upd.game={...baseWait(g),tray:newTray};
+    }else{
+      const remain=faces.filter((f,i)=>!flags[i]);
+      if(remain.length===0){
+        upd.game={...g,seq:g.seq+1,dice:[],tray:newTray,turnTotal:newTurnTotal,phase:'roll',hot:true};
+      }else{
+        upd.game={...g,seq:g.seq+1,dice:remain.map(f=>({face:f,sel:false,scoring:false})),tray:newTray,turnTotal:newTurnTotal,phase:'choose',hot:false};
+      }
+    }
   }
   update(ref(db,`rooms/${roomCode}`),upd).catch(e=>toast('Ошибка сети','bad')).finally(()=>{animLock=false;});
-}
-function toggleDie(i){
-  if(!isMyTurn()||room.game.phase!=='pick')return;
-  update(R(`game/dice/${i}/sel`),!room.game.dice[i].sel);
-}
-function take(){
-  if(!isMyTurn()||room.game.phase!=='pick')return;
-  const g=room.game,p=room.players[myPid];
-  const sel=(g.dice||[]).filter(d=>d.sel);
-  const pts=calcScore(sel.map(d=>d.face));
-  if(pts<5){toast('Выбранные кубики не приносят очков','warn');return;}
-  const remain=g.dice.filter(d=>!d.sel);
-  const upd={game:{...g,seq:g.seq+1,dice:remain,tray:[...(g.tray||[]),sel.map(d=>d.face)],
-    turnTotal:g.turnTotal+pts,phase:remain.length?'choose':'roll',hot:!remain.length}};
-  pushLogIn(upd,`${p.name} берёт ${pts} ${ptsWord(pts)} (за ход ${upd.game.turnTotal})`,'take');
-  update(ref(db,`rooms/${roomCode}`),upd);
 }
 function bank(){
   if(!isMyTurn()||room.game.phase!=='choose')return;
   const chk=canBank();if(!chk.ok){toast(chk.why,'warn');return;}
   const g=room.game,p=room.players[myPid],ns=p.score+g.turnTotal,upd={};
-  if(ns>TARGET){
-    // перебор: точка, ход не засчитывается, но ходом в бочке считается
+  if(ns>TARGET){ // страховка: обычно точка срабатывает автоматически
     const r=applyDot(upd,myPid,`${p.name}: перебор ${ns} вместо 1000.`);
     pushLogIn(upd,r.msg+' Ход не засчитывается.','dot');
     applyBarrelTick(upd,myPid,r.cutToBarrel?1:2);
@@ -945,7 +947,7 @@ function bank(){
   }
   pushScore(upd,myPid,ns);
   upd[`players/${myPid}/opened`]=true;
-  upd[`players/${myPid}/zeroStreak`]=0;
+  upd[`players/${myPid}/zeroStreak`]=0; // успешный ход обнуляет серию нулевых
   pushLogIn(upd,`💰 ${p.name} записывает ${g.turnTotal} ${ptsWord(g.turnTotal)} → ${ns}`,'bank');
   if(ns===TARGET){
     upd.meta={...room.meta,status:'finished',winner:myPid};
@@ -953,19 +955,19 @@ function bank(){
     pushLogIn(upd,`🏆 ${p.name} набирает ровно 1000 и ПОБЕЖДАЕТ!`,'win');
     update(ref(db,`rooms/${roomCode}`),upd);return;
   }
-  // обгон: обогнанный срезается на ПРЕДЫДУЩЕЕ значение очков обгоняющего; в бочке обгон не срезает
+  // обгон: обогнанный срезается до СВОЕГО прошлого значения; равный счёт тоже обгон
   room.order.forEach(pid=>{
     if(pid===myPid)return;
     const o=room.players[pid];
-    if(g.startScore<o.score&&ns>o.score){
+    if(g.startScore<o.score&&ns>=o.score){
       if(getBarrel(o.score)){
         pushLogIn(upd,`⚔ ${p.name} обгоняет ${o.name}, но тот в бочке — срез не применяется`,'ovr');
         return;
       }
-      pushScore(upd,pid,g.startScore);
-      if(g.startScore===0)upd[`players/${pid}/opened`]=false; // срез до 0 — снова входить в игру
-      pushLogIn(upd,`⚔ Обгон! ${o.name} срезается до ${g.startScore} (счёт ${p.name} до хода)`,'ovr');
-      const cb=getBarrel(g.startScore);
+      const newScore=crossLast(upd,pid,1); // зачёркиваем последнюю запись → счёт = предыдущая
+      if(newScore===0)upd[`players/${pid}/opened`]=false; // срез до 0 — снова входить в игру
+      pushLogIn(upd,`⚔ Обгон! ${o.name} срезается до прошлого значения: ${newScore} ${ptsWord(newScore)}`,'ovr');
+      const cb=getBarrel(newScore);
       if(cb){
         upd[`players/${pid}/inBarrel`]=cb.lo;
         upd[`players/${pid}/barrelLeft`]=2;
