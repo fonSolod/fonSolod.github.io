@@ -201,6 +201,7 @@ const total=Object.keys(state.room.log||{}).length;
 if(total!==lastLogCount){lastLogCount=total;logBox.scrollTop=0;}
 }
 export function checkToast(){
+if(!state.room)return;
 const entries=Object.values(state.room.log||{}).sort((a,b)=>a.ts-b.ts);
 const last=entries[entries.length-1];
 if(!last||last.ts<=state.joinedAt||last.ts<=state.lastToastTs)return;
