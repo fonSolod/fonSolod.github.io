@@ -41,6 +41,7 @@ export function renderGame(prev){
 $('codeChip').textContent=state.roomCode;
 const iAmCreator=state.room.meta.createdBy===state.myPid;
 if($('btnDeleteRoom'))$('btnDeleteRoom').hidden=!(iAmCreator||state.isAdmin);
+if($('btnLeaveParty'))$('btnLeaveParty').hidden=!(state.isMember&&state.room.meta.status==='playing');
 if(!state.room.game)return;
 maybeIncomingAnim(prev);
 renderPlayers();renderTrack();renderDice();renderTray();renderTurnInfo();renderActions();renderLog();
@@ -68,6 +69,7 @@ const pcls=(getBarrel(pot)||pot>TARGET)?'pot danger':(pot===TARGET?'pot win':'po
 potHtml=`<span class="${pcls}" title="Счёт + взято за ход">→ ${pot}</span>`;
 }
 const chips=[];
+if(p.left){chips.push('<span class="chip left">⛔ выбыл</span>');}
 if(!p.opened)chips.push('<span class="chip lock">🔒 вход ≥50</span>');
 if(p.inBarrel!=null)chips.push(`<span class="chip barrel">🛢 бочка ${p.inBarrel}–${p.inBarrel+100} · ${p.barrelLeft!=null?hodWord(p.barrelLeft):''}</span>`);
 if(p.zeroStreak)chips.push(`<span class="chip zero">⚡ нулевых подряд: ${p.zeroStreak}/${ZERO_STREAK}</span>`);
@@ -239,12 +241,23 @@ toast(last.t,last.k==='win'?'gold':(last.k==='ovr'?'':'bad'));state.lastToastTs=
 
 /* ---------- победа ---------- */
 export function renderWin(){
-$('winTitle').textContent=state.room.players[state.room.meta.winner]?.name||'';
-$('winRows').innerHTML=state.room.order.map(pid=>state.room.players[pid]).filter(Boolean)
-.sort((a,b)=>b.score-a.score)
-.map((p,i)=>`<div class="winRow${i===0?' first':''}">
+const winnerUid=state.room.meta.winner;
+$('winTitle').textContent=state.room.players[winnerUid]?.name||'';
+const all=state.room.order.map(pid=>state.room.players[pid]).filter(Boolean);
+const active=all.filter(p=>!p.left).sort((a,b)=>b.score-a.score);
+const left=all.filter(p=>p.left).sort((a,b)=>b.score-a.score);
+let html='';
+active.forEach((p,i)=>{
+html+=`<div class="winRow${i===0&&p.name===state.room.players[winnerUid]?.name?' first':''}">
 <span class="place">${i+1}</span><span class="pdotBig" style="background:${PC[p.seat]}"></span>${esc(p.name)}
-<span class="wscore">${p.score}</span></div>`).join('');
+<span class="wscore">${p.score}</span></div>`;
+});
+left.forEach((p,i)=>{
+html+=`<div class="winRow left">
+<span class="place">—</span><span class="pdotBig" style="background:${PC[p.seat]}"></span>${esc(p.name)}
+<span class="wscore">${p.score}</span></div>`;
+});
+$('winRows').innerHTML=html;
 const iAmCreator=state.room.meta.createdBy===state.myPid;
 if($('btnNewGame'))$('btnNewGame').hidden=!iAmCreator;
 if($('btnLobby'))$('btnLobby').hidden=!iAmCreator;
