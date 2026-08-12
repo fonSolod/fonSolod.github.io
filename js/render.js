@@ -1,15 +1,20 @@
-// Вся отрисовка. Не импортирует действия: кнопки помечаются data-act.
+// js/render.js — вся отрисовка. Не импортирует действия: динамические кнопки
+// помечаются data-act и обрабатываются делегированием в main.js.
 import {state,isMyTurn} from './state.js';
 import {PC,PIPS,TARGET,OPEN_MIN,DOT_LIMIT,BOLT_LIMIT,ZERO_STREAK,getBarrel,calcScore} from './rules.js';
-import {$,esc,ptsWord,hodWord,isTouch} from './util.js';
+import {$,esc,ptsWord,kubWord,hodWord,isTouch,toast} from './util.js';
 import {playRollSound} from './sound.js';
 import {canBank} from './ledger.js';
-export function showScreen(name){['join','lobby','game'].forEach(s=>$(s).hidden=(s!==name));}
+
+/* ---------- экраны ---------- */
+export function showScreen(name){['auth','join','lobby','game'].forEach(s=>$(s).hidden=(s!==name));}
 export function renderScreen(prev){
 if(!state.room){showScreen('join');return;}
 if(state.room.meta.status==='lobby'){renderLobby();showScreen('lobby');}
 else{renderGame(prev);showScreen('game');}
 }
+
+/* ---------- лобби ---------- */
 export function renderLobby(){
 $('lobbyCode').textContent=state.roomCode;
 const box=$('lobbyPlayers');box.innerHTML='';
@@ -23,11 +28,13 @@ box.appendChild(r);
 });
 $('lobbyCount').textContent=state.room.order.length;
 const iAmCreator=state.room.meta.createdBy===state.myPid;
-const btn=$('startGameBtn');
-btn.disabled=!iAmCreator||state.room.order.length<2;
-btn.style.opacity=btn.disabled?.5:1;
+const b=$('startGameBtn');
+b.disabled=!iAmCreator||state.room.order.length<2;
+b.style.opacity=b.disabled?.5:1;
 $('lobbyHint').textContent=!iAmCreator?'Ожидание организатора…':(state.room.order.length<2?'Нужно минимум 2 игрока — поделитесь кодом':'Всё готово!');
 }
+
+/* ---------- игра: общий рендер ---------- */
 export function renderGame(prev){
 $('codeChip').textContent=state.roomCode;
 if(!state.room.game)return;
@@ -36,6 +43,8 @@ renderPlayers();renderTrack();renderDice();renderTray();renderTurnInfo();renderA
 if(state.room.meta.status==='finished'){$('winOverlay').hidden=false;renderWin();}
 else $('winOverlay').hidden=true;
 }
+
+/* ---------- карточки игроков ---------- */
 export function renderPlayers(){
 const box=$('players');box.innerHTML='';
 const g=state.room.game;
@@ -47,6 +56,7 @@ c.className='pcard'+(act?' active':'')+(barrel?' bcard':'');
 c.style.setProperty('--pc',PC[p.seat]);
 const hist=p.hist||[];
 if(hist.length)c.title='История записей: '+(p.opened?'':'(не открыт) ')+hist.map(e=>e.x?'✗'+e.v:e.v).join(' → ');
+// потенциальный счёт активного игрока
 let potHtml='';
 if(act&&state.room.meta.status==='playing'&&g&&g.turnTotal>0&&(g.phase==='choose'||g.phase==='roll')){
 const pot=p.score+g.turnTotal;
@@ -67,6 +77,8 @@ ${act?'<span class="go">ходит</span>':''}
 box.appendChild(c);
 });
 }
+
+/* ---------- трек прогресса ---------- */
 export function renderTrack(){
 const t=$('tokens');t.innerHTML='';
 state.room.order.forEach(pid=>{
@@ -78,6 +90,8 @@ tok.style.left=Math.max(0,Math.min(1000,p.score))/10+'%';
 t.appendChild(tok);
 });
 }
+
+/* ---------- кубики ---------- */
 export function buildDieEl(face,cls){
 const d=document.createElement('div');d.className='die '+(cls||'big')+(face===1?' red':'');
 const f=document.createElement('div');f.className='face';
@@ -100,6 +114,7 @@ g.innerHTML='<div class="face">'+Array.from({length:9},()=>'<span class="cell"><
 box.appendChild(g);
 }
 }
+// анимация «прилетевшего» броска соперника
 export function maybeIncomingAnim(prev){
 if(!prev||!prev.game||state.animLock||isMyTurn())return;
 const g=state.room.game;
@@ -113,6 +128,8 @@ els.forEach((el,i)=>{el.classList.add('rolling');el.style.animationDelay=i*60+'m
 setTimeout(()=>{els.forEach(el=>{el.classList.remove('rolling');el.style.animationDelay='';});state.animLock=false;},420);
 }
 }
+
+/* ---------- трей: комбинации столбиками ---------- */
 export function renderTray(){
 const tb=$('trayBox');tb.innerHTML='';
 const groups=(state.room.game.tray||[]).map(x=>Array.isArray(x)?x:[x]).filter(g=>g.length);
@@ -127,12 +144,14 @@ tb.appendChild(col);
 });
 $('turnTotalVal').textContent=state.room.game.turnTotal||0;
 }
+
+/* ---------- информация о ходе ---------- */
 export function renderTurnInfo(){
 const g=state.room.game,p=state.room.players[g.current];
 let req='',cls='req';
 const banner=$('banner');
 if(g.phase==='wait'){
-const entries=Object.values(state.room.log||{}).sort((a,b)=>a.ts-b.ts);
+const entries=Object.values(state.room.log||{}).sort((a,b)=>a.ts-b.ts||(a.s||0)-(b.s||0));
 const last=entries[entries.length-1];
 banner.hidden=false;banner.textContent=(g.busted?'💥 ':'')+(last?last.t:'');
 }else banner.hidden=true;
@@ -153,6 +172,8 @@ else req=`Осталось ${left} ${ptsWord(left)}`;
 }
 $('turnInfo').innerHTML=`<div class="who">Ходит: <b style="color:${PC[p.seat]}">${esc(p.name)}</b>${isMyTurn()?' — это вы':''}</div><div class="${cls}">${req}</div>`;
 }
+
+/* ---------- панель действий (кнопки через data-act) ---------- */
 export function btn(cls,text,act){const b=document.createElement('button');b.className='btn '+cls;b.textContent=text;b.dataset.act=act;return b;}
 export function renderActions(){
 const A=$('actions');A.innerHTML='';
@@ -188,28 +209,31 @@ if(!chk.ok){const h=document.createElement('div');h.className='pickHint';h.textC
 if(isTouch){const h=document.createElement('div');h.className='pickHint';h.textContent='📱 Переброс — тоже встряхиванием';A.appendChild(h);}
 }
 }
-import {kubWord} from './util.js';
-let lastLogCount=0;
+
+/* ---------- журнал (новые записи сверху) ---------- */
 export function renderLog(){
 const logBox=$('log'),list=$('logList');
-const entries=Object.values(state.room.log||{}).sort((a,b)=>b.ts-a.ts).slice(0,60);
+const entries=Object.values(state.room.log||{}).sort((a,b)=>b.ts-a.ts||(b.s||0)-(a.s||0)).slice(0,60);
 list.innerHTML='';
 entries.forEach(e=>{
 const d=document.createElement('div');d.className='entry '+(e.k||'');d.textContent=e.t;list.appendChild(d);
 });
 const total=Object.keys(state.room.log||{}).length;
-if(total!==lastLogCount){lastLogCount=total;logBox.scrollTop=0;}
+if(total!==state.lastLogCount){state.lastLogCount=total;logBox.scrollTop=0;}
 }
+
+/* ---------- тосты по событиям журнала ---------- */
 export function checkToast(){
-if(!state.room)return;
-const entries=Object.values(state.room.log||{}).sort((a,b)=>a.ts-b.ts);
+if(!state.room)return; // защита: комната может быть null при выходе/удалении
+const entries=Object.values(state.room.log||{}).sort((a,b)=>a.ts-b.ts||(a.s||0)-(b.s||0));
 const last=entries[entries.length-1];
 if(!last||last.ts<=state.joinedAt||last.ts<=state.lastToastTs)return;
 if(['bad','dot','dump','ovr','win'].includes(last.k)){
 toast(last.t,last.k==='win'?'gold':(last.k==='ovr'?'':'bad'));state.lastToastTs=last.ts;
 }
 }
-import {toast} from './util.js';
+
+/* ---------- победа ---------- */
 export function renderWin(){
 $('winTitle').textContent=state.room.players[state.room.meta.winner]?.name||'';
 $('winRows').innerHTML=state.room.order.map(pid=>state.room.players[pid]).filter(Boolean)
@@ -219,4 +243,3 @@ $('winRows').innerHTML=state.room.order.map(pid=>state.room.players[pid]).filter
 <span class="wscore">${p.score}</span></div>`).join('');
 $('btnLobby').hidden=state.room.meta.createdBy!==state.myPid;
 }
-export function showScreen(name){['auth','join','lobby','game'].forEach(s=>$(s).hidden=(s!==name));}
