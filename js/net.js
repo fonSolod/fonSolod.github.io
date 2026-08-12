@@ -42,7 +42,11 @@ if(!state.isMember)return;
 const on=ref(db,`rooms/${state.roomCode}/players/${state.myPid}/online`);
 onValue(ref(db,'.info/connected'),s=>{if(s.val()===true){onDisconnect(on).set(false);set(on,true);}});
 }
+let unsubRoom=null;
+export function stopListen(){if(unsubRoom){unsubRoom();unsubRoom=null;}}
 export function listen(){
+stopListen();
+unsubRoom=onValue(ref(db,`rooms/${state.roomCode}`),snap=>{
 onValue(ref(db,`rooms/${state.roomCode}`),snap=>{
 const data=snap.val();
 if(!data){state.room=null;if(ui.onSnapshot)ui.onSnapshot(null);toast('Комната удалена','warn');return;}
