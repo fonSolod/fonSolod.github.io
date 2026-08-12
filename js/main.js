@@ -1,4 +1,4 @@
-// Точка входа: авторизация, связывание модулей, запуск
+// js/main.js — точка входа: авторизация, связывание модулей, запуск
 import {configured} from './config.js';
 import {state,ui} from './state.js';
 import {$,toast} from './util.js';
@@ -7,8 +7,8 @@ import * as actions from './actions.js';
 import * as net from './net.js';
 import * as notify from './notify.js';
 import * as authM from './auth.js';
+import * as home from './home.js';
 import * as sound from './sound.js';
-
 
 ui.onSnapshot=(prev)=>{
 notify.handleTurnChange(prev);
@@ -17,9 +17,11 @@ render.renderScreen(prev);
 actions.scheduleAutoAdvance();
 };
 ui.renderActions=render.renderActions;
+ui.renderHome=home.renderHome;
 
 if(!configured){
-$('authCard').hidden=true;$('joinCard').hidden=true;$('cfgWarn').hidden=false;
+$('authCard').hidden=true;
+$('cfgWarn').hidden=false;
 }
 
 /* ---------- экран авторизации ---------- */
@@ -72,28 +74,40 @@ authM.watchAuth(async user=>{
 if(user){
 state.uid=user.uid;
 state.profile=(await authM.loadProfile(user.uid))||{name:(user.email||'Игрок').split('@')[0]};
-$('joinWho').textContent='Вы вошли как '+state.profile.name;
+state.isAdmin=state.profile.isAdmin===true;
+$('homeWho').textContent='Вы вошли как '+state.profile.name+(state.isAdmin?' 👑':'');
 $('accountChip').textContent='👤 '+state.profile.name;
-render.showScreen('join');
+render.showScreen('home');
+net.startRoomsWatch();
 net.autoJoin();
 }else{
 net.stopListen();
-state.uid=null;state.profile=null;state.roomCode=null;state.room=null;
+net.stopRoomsWatch();
+state.uid=null;state.profile=null;state.isAdmin=false;
+state.roomCode=null;state.room=null;state.homeRooms={};
 $('winOverlay').hidden=true;
 render.showScreen('auth');
 }
 });
-$('btnLogout').onclick=()=>authM.logout();
-$('joinLogout').onclick=()=>authM.logout();
-$('lobbyLogout').onclick=()=>authM.logout();
+const doLogout=()=>authM.logout();
+if($('btnLogout'))$('btnLogout').onclick=doLogout;
+if($('homeLogout'))$('homeLogout').onclick=doLogout;
+if($('lobbyLogout'))$('lobbyLogout').onclick=doLogout;
+
+/* ---------- главная страница ---------- */
+$('showCreateBtn').onclick=()=>{$('createPanel').hidden=!$('createPanel').hidden;};
+$('doCreateBtn').onclick=()=>{
+notify.requestNotif();
+net.createRoom({hidden:$('optHidden').checked,allowSpectators:$('optSpectators').checked});
+};
+$('joinBtn').onclick=()=>{notify.requestNotif();const c=$('codeInput').value.trim().toUpperCase();if(net.validCode(c))net.joinRoom(c);else toast('Введите код из 4 символов','warn');};
+$('roomFilter').oninput=()=>{state.homeFilter=$('roomFilter').value;home.renderHome();};
 
 /* ---------- статические кнопки ---------- */
-$('createBtn').onclick=()=>{notify.requestNotif();net.createRoom();};
-$('joinBtn').onclick=()=>{notify.requestNotif();const c=$('codeInput').value.trim().toUpperCase();if(net.validCode(c))net.joinRoom(c);else toast('Введите код из 4 символов','warn');};
+$('leaveBtn').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;render.showScreen('home');};
+$('btnLeaveGame').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;$('winOverlay').hidden=true;render.showScreen('home');};
 $('codeChip').onclick=net.copyInvite;
 $('copyLink').onclick=net.copyInvite;
-$('leaveBtn').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;render.showScreen('join');};
-$('btnLeaveGame').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;$('winOverlay').hidden=true;render.showScreen('join');};
 $('btnRules').onclick=()=>$('modal').hidden=false;
 $('modalClose').onclick=()=>$('modal').hidden=true;
 $('modal').onclick=e=>{if(e.target.id==='modal')$('modal').hidden=true;};
@@ -103,18 +117,21 @@ $('startGameBtn').onclick=actions.startGame;
 $('btnLobby').onclick=actions.returnToLobby;
 
 /* ---------- делегирование динамических кнопок ---------- */
-const actMap={roll:actions.doRoll,bank:actions.bank,advance:actions.advanceTurn};
+const actMap={roll:actions.doRoll,bank:actions.bank,advance:actions.advanceTurn,
+enter:(el)=>net.joinRoom(el.dataset.code),
+delroom:(el)=>net.deleteRoom(el.dataset.code)};
 document.addEventListener('click',e=>{
 const el=e.target.closest('[data-act]');
 if(!el)return;
 const fn=actMap[el.dataset.act];
-if(fn)fn();
+if(fn)fn(el);
 });
 
 /* ---------- глобальные слушатели ---------- */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)notify.stopBlink();});
 document.addEventListener('pointerdown',()=>{actions.enableShake();sound.initAudioOnGesture();},{once:true});
 document.addEventListener('keydown',()=>sound.initAudioOnGesture(),{once:true});
+
 /* ---------- запуск ---------- */
 notify.initServiceWorker();
 notify.updateNotifIcon();
