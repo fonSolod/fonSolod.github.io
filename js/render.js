@@ -218,3 +218,4 @@ $('winRows').innerHTML=state.room.order.map(pid=>state.room.players[pid]).filter
 <span class="wscore">${p.score}</span></div>`).join('');
 $('btnLobby').hidden=state.room.meta.createdBy!==state.myPid;
 }
+export function showScreen(name){['auth','join','lobby','game'].forEach(s=>$(s).hidden=(s!==name));}
