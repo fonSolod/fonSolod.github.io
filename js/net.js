@@ -2,7 +2,7 @@
 import {db,ref,update,set,get,remove,onValue,onDisconnect,configured} from './config.js';
 import {state,ui} from './state.js';
 import {toast,uniqueName} from './util.js';
-import {playerObj} from './ledger.js';
+import {playerObj,pushLogIn} from './ledger.js';
 
 export const R=p=>ref(db,`rooms/${state.roomCode}${p?'/'+p:''}`);
 // Запись в комнату + автоматическое обновление lastActive (для метки «неактивна»)
