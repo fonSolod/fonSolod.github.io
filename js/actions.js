@@ -1,4 +1,4 @@
-// Игровые действия: бросок, взятие, банк, передача хода, встряхивание.
+// js/actions.js — игровые действия: бросок, банк, передача хода, встряхивание.
 import {state,ui,isMyTurn} from './state.js';
 import {rndFace,calcScore,scoringFlags,TARGET,SAMOSVAL,ZERO_STREAK,getBarrel} from './rules.js';
 import {baseWait,pushLogIn,pushScore,applyDot,applyBarrelTick,applySamosvalAll,clearBarrelState,crossLast,projHist,lastValidIndex,canBank} from './ledger.js';
@@ -7,6 +7,8 @@ import {buildDieEl,setFaceEl} from './render.js';
 import {playRollSound} from './sound.js';
 import {stopBlink,requestNotif} from './notify.js';
 import {$,toast,ptsWord,isTouch} from './util.js';
+
+/* ---------- бросок ---------- */
 export function doRoll(){
 stopBlink();
 if(!isMyTurn()||!(state.room.game.phase==='roll'||state.room.game.phase==='choose')||state.animLock)return;
@@ -24,6 +26,7 @@ els.forEach((el,i)=>{el.classList.remove('rolling');setFaceEl(el,faces[i]);});
 setTimeout(()=>finishRoll(faces),260);
 },760);
 }
+
 function finishRoll(faces){
 const g=state.room.game,p=state.room.players[state.myPid];
 const pts=calcScore(faces);
@@ -87,6 +90,8 @@ upd.game={...g,seq:g.seq+1,dice:remain.map(f=>({face:f,sel:false,scoring:false})
 }
 writeRoom(upd).catch(e=>toast('Ошибка сети','bad')).finally(()=>{state.animLock=false;});
 }
+
+/* ---------- банк (хватить) ---------- */
 export function bank(){
 if(!isMyTurn()||state.room.game.phase!=='choose')return;
 const chk=canBank();if(!chk.ok){toast(chk.why,'warn');return;}
@@ -109,6 +114,7 @@ upd.game={...g,seq:g.seq+1,phase:'over'};
 pushLogIn(upd,`🏆 ${p.name} набирает ровно 1000 и ПОБЕЖДАЕТ!`,'win');
 writeRoom(upd);return;
 }
+// обгон: обогнанный срезается до СВОЕГО прошлого значения; равный счёт тоже обгон
 state.room.order.forEach(pid=>{
 if(pid===state.myPid)return;
 const o=state.room.players[pid];
@@ -134,6 +140,8 @@ applySamosvalAll(upd);
 upd.game=baseWait(g);
 writeRoom(upd);
 }
+
+/* ---------- передача хода ---------- */
 export function advanceTurn(){
 if(!state.room||!state.room.game||state.room.game.phase!=='wait')return;
 const g=state.room.game,o=state.room.order;
@@ -148,7 +156,8 @@ if(state.room&&state.room.game&&state.room.game.phase==='wait'&&state.room.game.
 state.advTimer=setTimeout(()=>{if(state.room&&state.room.game&&state.room.game.phase==='wait')advanceTurn();},2200);
 }
 }
-// Общий запуск: сброс всех игроков, жребий, старт
+
+/* ---------- запуск игры ---------- */
 function launchGame(){
 const upd={meta:{...state.room.meta,status:'playing'}};
 state.room.order.forEach(pid=>{
@@ -165,11 +174,11 @@ const first=order[0];
 upd.game={seq:1,current:first,phase:'roll',dice:[],tray:[],turnTotal:0,startScore:0,hot:false,busted:false,waitTs:0};
 pushLogIn(upd,'Игра началась! Очередность ходов разыграна жребием. Цель — ровно 1000.','turn');
 pushLogIn(upd,`— Ход: ${state.room.players[first].name} —`,'turn');
-net.writeRoom(upd);
+writeRoom(upd);
 }
 export function startGame(){
 if(state.room.meta.createdBy!==state.myPid||state.room.order.length<2)return;
-notify.requestNotif();
+requestNotif();
 launchGame();
 }
 export function newGameSamePlayers(){
@@ -182,7 +191,8 @@ const {room,myPid}=state;
 if(room.meta.createdBy!==myPid)return;
 writeRoom({meta:{status:'lobby',createdAt:room.meta.createdAt,createdBy:room.meta.createdBy},game:null,log:null});
 }
-// ---- встряхивание ----
+
+/* ---------- встряхивание телефона ---------- */
 let shakeReady=false,lastMotion={x:null,y:null,z:null},lastShakeAt=0;
 const SHAKE_THRESHOLD=18, SHAKE_COOLDOWN=1200;
 export function enableShake(){
