@@ -7,6 +7,8 @@ import * as actions from './actions.js';
 import * as net from './net.js';
 import * as notify from './notify.js';
 import * as authM from './auth.js';
+import * as sound from './sound.js';
+
 
 ui.onSnapshot=(prev)=>{
 notify.handleTurnChange(prev);
@@ -111,8 +113,8 @@ if(fn)fn();
 
 /* ---------- глобальные слушатели ---------- */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)notify.stopBlink();});
-document.addEventListener('pointerdown',()=>actions.enableShake(),{once:true});
-
+document.addEventListener('pointerdown',()=>{actions.enableShake();sound.initAudioOnGesture();},{once:true});
+document.addEventListener('keydown',()=>sound.initAudioOnGesture(),{once:true});
 /* ---------- запуск ---------- */
 notify.initServiceWorker();
 notify.updateNotifIcon();
