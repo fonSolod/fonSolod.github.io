@@ -56,6 +56,59 @@ return true;
 }catch(e){toast('Не удалось удалить комнату','bad');return false;}
 }
 
+// Покинуть партию: выбытие с сохранением счёта, автопобеда при 1 игроке, удаление при 0.
+export async function leaveParty(){
+if(!state.room||!state.room.game)return false;
+const m=state.room.meta,g=state.room.game;
+if(m.status==='finished')return false;
+if(!confirm('Покинуть партию навсегда?\n\nВы выбудете из игры, вернуться в эту партию будет нельзя. Счёт и имя сохранятся в таблице.'))return false;
+const oldOrder=[...state.room.order];
+const newOrder=oldOrder.filter(uid=>uid!==state.myPid);
+const upd={
+order:newOrder,
+[`players/${state.myPid}/left`]:true,
+[`players/${state.myPid}/online`]:false
+};
+pushLogIn(upd,`⛔ ${state.room.players[state.myPid].name} покинул партию`,'bad');
+stopListen(); // отписываемся до записи, чтобы не получить свой же снапшот
+try{
+if(newOrder.length===0){
+// все ушли — удаляем комнату
+await remove(ref(db,`rooms/${state.roomCode}`));
+toast('Все игроки покинули партию — комната удалена','gold');
+state.roomCode=null;state.room=null;
+return true;
+}
+if(newOrder.length===1){
+// остался один — автопобеда
+const winner=newOrder[0];
+upd.meta={...m,status:'finished',winner};
+upd.game=null;
+pushLogIn(upd,`🏆 ${state.room.players[winner].name} побеждает: все соперники покинули партию`,'win');
+await update(ref(db,`rooms/${state.roomCode}`),upd);
+toast('Партия завершена','gold');
+state.roomCode=null;state.room=null;
+return true;
+}
+// обычный выход: если был мой ход — передаём следующему активному
+if(g.current===state.myPid){
+const oldIdx=oldOrder.indexOf(state.myPid);
+let next=null;
+for(let k=1;k<=oldOrder.length;k++){
+const cand=oldOrder[(oldIdx+k)%oldOrder.length];
+if(newOrder.includes(cand)){next=cand;break;}
+}
+if(next){
+upd.game={seq:(g.seq||0)+1,current:next,phase:'roll',dice:[],tray:[],turnTotal:0,
+startScore:state.room.players[next].score,hot:false,busted:false,waitTs:0};
+pushLogIn(upd,`— Ход: ${state.room.players[next].name} —`,'turn');
+}
+}
+await update(ref(db,`rooms/${state.roomCode}`),upd);
+state.roomCode=null;state.room=null;
+return true;
+}catch(e){toast('Не удалось покинуть партию','bad');return false;}
+}
 
 /* ---------- создание и вход ---------- */
 export async function createRoom(opts={}){
