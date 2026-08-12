@@ -119,6 +119,7 @@ state.room.order.forEach(pid=>{
 if(pid===state.myPid)return;
 const o=state.room.players[pid];
 if(g.startScore<o.score&&ns>=o.score){
+if(o.left)return;
 if(getBarrel(o.score)){
 pushLogIn(upd,`⚔ ${p.name} обгоняет ${o.name}, но тот в бочке — срез не применяется`,'ovr');
 return;
