@@ -164,3 +164,28 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .trayPlus{color:var(--muted);font-weight:700;font-size:16px;align-self:center}
 @media(max-width:900px){#gameGrid{grid-template-columns:1fr}#log{height:220px}}
 @media(max-width:560px){.pcard{min-width:calc(50% - 6px)}}
+
+/* главная страница */
+.homeWrap{display:grid;grid-template-columns:minmax(320px,420px) 1fr;gap:18px;align-items:start}
+.homePanel{margin:0;max-width:none}
+.homeList{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;min-height:300px}
+.checkRow{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:11px 14px;margin-bottom:8px;font-size:14px;cursor:pointer}
+.checkRow input{width:18px;height:18px;accent-color:var(--gold);cursor:pointer;flex:none}
+.sectionTitle{font-family:'Unbounded';font-weight:600;font-size:12px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin:18px 0 10px}
+.sectionTitle:first-child{margin-top:4px}
+.sectionTitle.gray{color:var(--muted)}
+.roomCard{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:13px 16px;margin-bottom:10px;transition:.18s}
+.roomCard:hover{border-color:rgba(245,196,81,.4)}
+.roomCard.inactive{opacity:.55}
+.rcTop{flex:1;min-width:0}
+.rcCode{font-family:'Unbounded';font-weight:800;font-size:20px;letter-spacing:3px;color:var(--gold);margin-right:10px}
+.rcOrg{font-size:12.5px;color:var(--muted)}
+.rcChips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.rcBtns{display:flex;gap:8px;flex:none;align-items:center}
+.rcDel{padding:10px 12px}
+.chip.st-lobby{color:var(--gold2);border-color:rgba(245,196,81,.4)}
+.chip.st-playing{color:#a5f0c3;border-color:rgba(125,227,161,.5)}
+.chip.st-finished{color:var(--muted)}
+.chip.mine{color:#3a2708;background:var(--gold);border-color:var(--gold);font-weight:700}
+.emptyNote{color:var(--muted);text-align:center;padding:40px 0;font-size:14px}
+@media(max-width:900px){.homeWrap{grid-template-columns:1fr}}
