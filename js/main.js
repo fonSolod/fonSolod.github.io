@@ -115,6 +115,14 @@ $('btnSound').onclick=()=>{state.soundOn=!state.soundOn;$('btnSound').textConten
 $('btnNotify').onclick=notify.notifyToggle;
 $('startGameBtn').onclick=actions.startGame;
 $('btnLobby').onclick=actions.returnToLobby;
+// удаление комнаты из лобби и из игры
+$('lobbyDeleteBtn').onclick=async()=>{if(await net.deleteCurrentRoom())render.showScreen('home');};
+$('btnDeleteRoom').onclick=async()=>{if(await net.deleteCurrentRoom())render.showScreen('home');};
+// экран завершения партии
+$('btnNewGame').onclick=()=>actions.newGameSamePlayers();
+$('btnLobby').onclick=()=>actions.returnToLobby();
+$('btnDeleteRoomWin').onclick=async()=>{if(await net.deleteCurrentRoom())render.showScreen('home');};
+$('btnHomeFromWin').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;$('winOverlay').hidden=true;render.showScreen('home');};
 
 /* ---------- делегирование динамических кнопок ---------- */
 const actMap={roll:actions.doRoll,bank:actions.bank,advance:actions.advanceTurn,
