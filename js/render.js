@@ -9,7 +9,7 @@ import {canBank} from './ledger.js';
 /* ---------- экраны ---------- */
 export function showScreen(name){['auth','home','lobby','game'].forEach(s=>$(s).hidden=(s!==name));}
 export function renderScreen(prev){
-if(!state.room){showScreen('home');return;}   // было 'join'
+if(!state.room||!state.room.meta){showScreen('home');return;}
 if(state.room.meta.status==='lobby'){renderLobby();showScreen('lobby');}
 else{renderGame(prev);showScreen('game');}
 }
@@ -28,22 +28,20 @@ box.appendChild(r);
 });
 $('lobbyCount').textContent=state.room.order.length;
 const iAmCreator=state.room.meta.createdBy===state.myPid;
-const canDelete=iAmCreator||state.isAdmin;                        // ← добавить ЭТУ строку
-if($('lobbyDeleteBtn'))$('lobbyDeleteBtn').hidden=!canDelete;     // ← и ЭТУ строку
+const canDelete=iAmCreator||state.isAdmin;
+if($('lobbyDeleteBtn'))$('lobbyDeleteBtn').hidden=!canDelete;
 const b=$('startGameBtn');
 b.disabled=!iAmCreator||state.room.order.length<2;
 b.style.opacity=b.disabled?.5:1;
 $('lobbyHint').textContent=!iAmCreator?'Ожидание организатора…':(state.room.order.length<2?'Нужно минимум 2 игрока — поделитесь кодом':'Всё готово!');
 }
 
-
-
 /* ---------- игра: общий рендер ---------- */
 export function renderGame(prev){
 $('codeChip').textContent=state.roomCode;
-if(!state.room.game)return;
 const iAmCreator=state.room.meta.createdBy===state.myPid;
 if($('btnDeleteRoom'))$('btnDeleteRoom').hidden=!(iAmCreator||state.isAdmin);
+if(!state.room.game)return;
 maybeIncomingAnim(prev);
 renderPlayers();renderTrack();renderDice();renderTray();renderTurnInfo();renderActions();renderLog();
 if(state.room.meta.status==='finished'){$('winOverlay').hidden=false;renderWin();}
@@ -206,7 +204,7 @@ if(isTouch){const h=document.createElement('div');h.className='pickHint';h.textC
 const n=(g.dice||[]).length;
 A.appendChild(btn('ghost',`🎲 Бросить ещё (${n} ${kubWord(n)})`,'roll'));
 const chk=canBank(),ns=p.score+g.turnTotal;
-let label=`💰 Хватит (+${g.turnTotal})`,cls='primary';
+let label=`💰 Хватить (+${g.turnTotal})`,cls='primary';
 if(ns===TARGET){label='🏆 Хватить — ровно 1000!';cls='goldWin';}
 else if(ns>TARGET){label=`⚠️ Хватить — будет точка ${p.dots+1}/${DOT_LIMIT}`;cls='danger';}
 const b=btn(cls,label,'bank');if(!chk.ok)b.classList.add('blocked');
@@ -230,7 +228,7 @@ if(total!==state.lastLogCount){state.lastLogCount=total;logBox.scrollTop=0;}
 
 /* ---------- тосты по событиям журнала ---------- */
 export function checkToast(){
-if(!state.room)return; // защита: комната может быть null при выходе/удалении
+if(!state.room)return;
 const entries=Object.values(state.room.log||{}).sort((a,b)=>a.ts-b.ts||(a.s||0)-(b.s||0));
 const last=entries[entries.length-1];
 if(!last||last.ts<=state.joinedAt||last.ts<=state.lastToastTs)return;
@@ -251,5 +249,4 @@ const iAmCreator=state.room.meta.createdBy===state.myPid;
 if($('btnNewGame'))$('btnNewGame').hidden=!iAmCreator;
 if($('btnLobby'))$('btnLobby').hidden=!iAmCreator;
 if($('btnDeleteRoomWin'))$('btnDeleteRoomWin').hidden=!(iAmCreator||state.isAdmin);
-// «Вернуться к списку» видна всем
 }
