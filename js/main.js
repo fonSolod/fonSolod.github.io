@@ -123,6 +123,10 @@ $('btnNewGame').onclick=()=>actions.newGameSamePlayers();
 $('btnLobby').onclick=()=>actions.returnToLobby();
 $('btnDeleteRoomWin').onclick=async()=>{if(await net.deleteCurrentRoom())render.showScreen('home');};
 $('btnHomeFromWin').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;$('winOverlay').hidden=true;render.showScreen('home');};
+$('btnLeaveParty').onclick=async()=>{
+if(await net.leaveParty()){net.stopRoomsWatch&&net.stopRoomsWatch();render.showScreen('home');}
+};
+
 
 /* ---------- делегирование динамических кнопок ---------- */
 const actMap={roll:actions.doRoll,bank:actions.bank,advance:actions.advanceTurn,
