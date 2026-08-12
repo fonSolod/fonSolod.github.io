@@ -28,14 +28,14 @@ box.appendChild(r);
 });
 $('lobbyCount').textContent=state.room.order.length;
 const iAmCreator=state.room.meta.createdBy===state.myPid;
+const canDelete=iAmCreator||state.isAdmin;                        // ← добавить ЭТУ строку
+if($('lobbyDeleteBtn'))$('lobbyDeleteBtn').hidden=!canDelete;     // ← и ЭТУ строку
 const b=$('startGameBtn');
 b.disabled=!iAmCreator||state.room.order.length<2;
 b.style.opacity=b.disabled?.5:1;
 $('lobbyHint').textContent=!iAmCreator?'Ожидание организатора…':(state.room.order.length<2?'Нужно минимум 2 игрока — поделитесь кодом':'Всё готово!');
 }
 
-const canDelete=iAmCreator||state.isAdmin;
-if($('lobbyDeleteBtn'))$('lobbyDeleteBtn').hidden=!canDelete;
 
 
 /* ---------- игра: общий рендер ---------- */
