@@ -46,31 +46,42 @@
 </div>
 </section>
   
-  <!-- ВХОД -->
-  <section id="join" hidden>
-    <div class="panel" id="joinCard">
-      <div class="logo"><h1>ТЫЩА</h1></div>
-      <p class="tagline">Сетевая версия · играйте с разных устройств по коду комнаты</p>
-      <p class="whoami" id="joinWho"></p>
-      <!-- …кнопки создания/входа без изменений… -->
-      <button class="linkBtn" id="joinLogout">Выйти из аккаунта</button>
-      <button id="createBtn" class="btn primary wide">🎲 Создать комнату</button>
-      <div class="or">— или —</div>
-      <div class="joinRow">
-        <input id="codeInput" class="bigInput" maxlength="4" placeholder="КОД" style="margin-bottom:0">
-        <button id="joinBtn" class="btn ghost">Войти</button>
-      </div>
-    </div>
-    <div class="panel cfgBox" id="cfgWarn" hidden>
-      <h2 style="color:var(--bad);font-family:'Unbounded';font-size:18px;margin-bottom:12px">⚙ Firebase не настроен</h2>
-      <ol>
-        <li>Создайте проект на <b>console.firebase.google.com</b></li>
-        <li>Включите <b>Realtime Database</b> (test mode)</li>
-        <li>Скопируйте конфиг веб-приложения в переменную <b>firebaseConfig</b> в этом файле</li>
-        <li>Правила БД: <code>"rooms": { "$room": { ".read": true, ".write": true } }</code></li>
-      </ol>
-    </div>
-  </section>
+ <!-- ГЛАВНАЯ -->
+<section id="home" hidden>
+<div class="homeWrap">
+<div class="panel homePanel">
+<div class="logo"><h1>ТЫЩА</h1></div>
+<p class="tagline">Сетевая версия · играйте с разных устройств</p>
+<p class="whoami" id="homeWho"></p>
+<button id="showCreateBtn" class="btn primary wide">➕ Создать комнату</button>
+<div id="createPanel" hidden style="margin-top:14px">
+<label class="checkRow"><input type="checkbox" id="optHidden"> 🔒 Приватная (не показывать в общем списке)</label>
+<label class="checkRow"><input type="checkbox" id="optSpectators" checked> 👁 Разрешить наблюдателей</label>
+<button id="doCreateBtn" class="btn primary wide" style="margin-top:10px">Создать</button>
+</div>
+<div class="or">— или войдите по коду —</div>
+<div class="joinRow">
+<input id="codeInput" class="bigInput" maxlength="4" placeholder="КОД" style="margin-bottom:0">
+<button id="joinBtn" class="btn ghost">Войти</button>
+</div>
+<button class="linkBtn" id="homeLogout">Выйти из аккаунта</button>
+</div>
+<div class="homeList">
+<input id="roomFilter" class="bigInput" placeholder="🔍 Фильтр по коду комнаты…">
+<div id="homeSections"></div>
+</div>
+</div>
+</section>
+
+<div class="panel cfgBox" id="cfgWarn" hidden>
+<h2 style="color:var(--bad);font-family:'Unbounded';font-size:18px;margin-bottom:12px">⚙ Firebase не настроен</h2>
+<ol>
+<li>Создайте проект на <b>console.firebase.google.com</b></li>
+<li>Включите <b>Realtime Database</b> (test mode)</li>
+<li>Скопируйте конфиг веб-приложения в переменную <b>firebaseConfig</b></li>
+<li>Включите <b>Authentication → Email/Password</b></li>
+</ol>
+</div>
 
   <!-- ЛОББИ -->
   <section id="lobby" hidden>
