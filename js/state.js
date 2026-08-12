@@ -1,34 +1,36 @@
 // js/state.js — общее изменяемое состояние.
-// Все модули читают и пишут через этот объект. Сам объект НЕ заменяется —
-// только его поля, чтобы живые ссылки в других модулях оставались валидными.
+// Все модули читают и пишут через этот объект. Сам объект НЕ заменяется.
 
 export const state={
 // аккаунт (Firebase Auth)
-uid:null,            // uid текущего аккаунта; null — не залогинен
-profile:null,        // профиль из users/{uid}: {name, login, email, createdAt}
+uid:null,
+profile:null,        // профиль из users/{uid}
+isAdmin:false,       // users/{uid}/isAdmin === true
+
+// главная страница (список комнат)
+homeRooms:{},        // снапшот всех комнат: {КОД: {meta, players, order, ...}}
+homeFilter:'',       // фильтр по коду
 
 // комната и игрок
-roomCode:null,       // код текущей комнаты
-myPid:null,          // мой игрок в комнате (uid для новых комнат, pid для старых)
-room:null,           // последний снапшот комнаты из Firebase
-isMember:false,      // true — я игрок, false — наблюдатель
+roomCode:null,
+myPid:null,
+room:null,
+isMember:false,
 
 // служебные флаги
-animLock:false,      // идёт анимация броска (кнопки блокируются)
-advTimer:null,       // таймер автопередачи хода
-lastToastTs:0,       // ts последнего показанного тоста (чтобы не дублировать)
-lastLogCount:0,      // счётчик записей журнала (для автоскролла)
-soundOn:true,        // включён ли звук
-joinedAt:Date.now(), // момент подключения (фильтр «своих» тостов)
+animLock:false,
+advTimer:null,
+lastToastTs:0,
+lastLogCount:0,
+soundOn:true,
+joinedAt:Date.now(),
 };
 
 // Слоты для функций из других модулей. Заполняются в main.js.
-// Это разрывает циклические импорты: actions не импортирует render напрямую,
-// а вызывает ui.renderActions(), который main подставил из render.
 export const ui={
-onSnapshot:null,    // (prev)=>void — реакция на обновление комнаты из Firebase
+onSnapshot:null,    // (prev)=>void — обновление комнаты из Firebase
 renderActions:null, // ()=>void     — перерисовать панель действий
+renderHome:null,    // ()=>void     — перерисовать список комнат
 };
 
-// Мой ли сейчас ход?
 export const isMyTurn=()=>!!(state.room&&state.room.game&&state.room.game.current===state.myPid);
