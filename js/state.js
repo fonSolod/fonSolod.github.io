@@ -11,3 +11,9 @@ onSnapshot:null,    // (prev)=>void  — реакция на обновлени�
 renderActions:null, // ()=>void      — перерисовать панель действий
 };
 export const isMyTurn=()=>!!(state.room&&state.room.game&&state.room.game.current===state.myPid);
+export const state={
+uid:null, profile:null,          // ← аккаунт
+roomCode:null, myPid:null, room:null, isMember:false,
+animLock:false, advTimer:null, lastToastTs:0, lastLogCount:0,
+soundOn:true, joinedAt:Date.now(),
+};
