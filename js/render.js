@@ -34,10 +34,16 @@ b.style.opacity=b.disabled?.5:1;
 $('lobbyHint').textContent=!iAmCreator?'Ожидание организатора…':(state.room.order.length<2?'Нужно минимум 2 игрока — поделитесь кодом':'Всё готово!');
 }
 
+const canDelete=iAmCreator||state.isAdmin;
+if($('lobbyDeleteBtn'))$('lobbyDeleteBtn').hidden=!canDelete;
+
+
 /* ---------- игра: общий рендер ---------- */
 export function renderGame(prev){
 $('codeChip').textContent=state.roomCode;
 if(!state.room.game)return;
+const iAmCreator=state.room.meta.createdBy===state.myPid;
+if($('btnDeleteRoom'))$('btnDeleteRoom').hidden=!(iAmCreator||state.isAdmin);
 maybeIncomingAnim(prev);
 renderPlayers();renderTrack();renderDice();renderTray();renderTurnInfo();renderActions();renderLog();
 if(state.room.meta.status==='finished'){$('winOverlay').hidden=false;renderWin();}
@@ -241,5 +247,9 @@ $('winRows').innerHTML=state.room.order.map(pid=>state.room.players[pid]).filter
 .map((p,i)=>`<div class="winRow${i===0?' first':''}">
 <span class="place">${i+1}</span><span class="pdotBig" style="background:${PC[p.seat]}"></span>${esc(p.name)}
 <span class="wscore">${p.score}</span></div>`).join('');
-$('btnLobby').hidden=state.room.meta.createdBy!==state.myPid;
+const iAmCreator=state.room.meta.createdBy===state.myPid;
+if($('btnNewGame'))$('btnNewGame').hidden=!iAmCreator;
+if($('btnLobby'))$('btnLobby').hidden=!iAmCreator;
+if($('btnDeleteRoomWin'))$('btnDeleteRoomWin').hidden=!(iAmCreator||state.isAdmin);
+// «Вернуться к списку» видна всем
 }
