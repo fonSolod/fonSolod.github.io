@@ -7,9 +7,9 @@ import {playRollSound} from './sound.js';
 import {canBank} from './ledger.js';
 
 /* ---------- экраны ---------- */
-export function showScreen(name){['auth','join','lobby','game'].forEach(s=>$(s).hidden=(s!==name));}
+export function showScreen(name){['auth','home','lobby','game'].forEach(s=>$(s).hidden=(s!==name));}
 export function renderScreen(prev){
-if(!state.room){showScreen('join');return;}
+if(!state.room){showScreen('home');return;}   // было 'join'
 if(state.room.meta.status==='lobby'){renderLobby();showScreen('lobby');}
 else{renderGame(prev);showScreen('game');}
 }
