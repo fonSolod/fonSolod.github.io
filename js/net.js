@@ -42,6 +42,21 @@ try{await remove(ref(db,`rooms/${code}`));toast('Комната удалена',
 catch(e){toast('Не удалось удалить комнату','bad');}
 }
 
+export async function deleteCurrentRoom(){
+const m=state.room&&state.room.meta;
+const iAmCreator=m&&m.createdBy===state.uid;
+if(!iAmCreator&&!state.isAdmin)return false;
+if(!confirm('Удалить комнату '+state.roomCode+'? Все данные партии будут стёрты, все игроки вернутся к списку.'))return false;
+stopListen(); // отписываемся, чтобы не ждать callback удаления
+try{
+await remove(ref(db,`rooms/${state.roomCode}`));
+state.roomCode=null;state.room=null;
+toast('Комната удалена','gold');
+return true;
+}catch(e){toast('Не удалось удалить комнату','bad');return false;}
+}
+
+
 /* ---------- создание и вход ---------- */
 export async function createRoom(opts={}){
 const name=getName();let code=genCode();
