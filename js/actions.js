@@ -148,26 +148,34 @@ if(state.room&&state.room.game&&state.room.game.phase==='wait'&&state.room.game.
 state.advTimer=setTimeout(()=>{if(state.room&&state.room.game&&state.room.game.phase==='wait')advanceTurn();},2200);
 }
 }
-export function startGame(){
-const {room,myPid}=state;
-if(room.meta.createdBy!==myPid||room.order.length<2)return;
-requestNotif();
-const upd={meta:{...room.meta,status:'playing'}};
-room.order.forEach(pid=>{
+// Общий запуск: сброс всех игроков, жребий, старт
+function launchGame(){
+const upd={meta:{...state.room.meta,status:'playing'}};
+state.room.order.forEach(pid=>{
 ['score','bolts','dots','zeroStreak'].forEach(k=>upd[`players/${pid}/${k}`]=0);
 upd[`players/${pid}/opened`]=false;
 upd[`players/${pid}/hist`]=null;
 upd[`players/${pid}/histMark`]=null;
 clearBarrelState(upd,pid);
 });
-const order=[...room.order];
+const order=[...state.room.order];
 for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
 upd.order=order;
 const first=order[0];
 upd.game={seq:1,current:first,phase:'roll',dice:[],tray:[],turnTotal:0,startScore:0,hot:false,busted:false,waitTs:0};
 pushLogIn(upd,'Игра началась! Очередность ходов разыграна жребием. Цель — ровно 1000.','turn');
-pushLogIn(upd,`— Ход: ${room.players[first].name} —`,'turn');
-writeRoom(upd);
+pushLogIn(upd,`— Ход: ${state.room.players[first].name} —`,'turn');
+net.writeRoom(upd);
+}
+export function startGame(){
+if(state.room.meta.createdBy!==state.myPid||state.room.order.length<2)return;
+notify.requestNotif();
+launchGame();
+}
+export function newGameSamePlayers(){
+if(state.room.meta.createdBy!==state.myPid)return;
+if(state.room.order.length<1)return;
+launchGame();
 }
 export function returnToLobby(){
 const {room,myPid}=state;
