@@ -94,6 +94,7 @@
       <button id="startGameBtn" class="btn primary wide" style="margin-top:16px">Начать игру</button>
       <p class="pickHint" id="lobbyHint"></p>
       <button class="tbtn" id="leaveBtn" style="margin-top:14px;width:100%">← Выйти из комнаты</button>
+      <button class="tbtn" id="lobbyDeleteBtn" style="margin-top:8px;width:100%">🗑 Удалить комнату</button>
       <button class="linkBtn" id="lobbyLogout">Сменить аккаунт</button>
     </div>
   </section>
@@ -110,6 +111,7 @@
         <button class="tbtn" id="btnSound">🔊</button>
         <button class="tbtn" id="btnRules">📖 Правила</button>
         <button class="tbtn" id="btnLeaveGame">Выйти</button>
+        <button class="tbtn" id="btnDeleteRoom" title="Удалить комнату">🗑</button>
       </div>
     </div>
     <div id="players"></div>
@@ -164,10 +166,13 @@
 </div></div>
 
 <div id="winOverlay" hidden><div class="winCard">
-  <div class="crown">🏆</div><h2 id="winTitle"></h2>
-  <p>набирает ровно 1000 очков и побеждает!</p>
-  <div id="winRows"></div>
-  <button class="btn primary wide" id="btnLobby" style="margin-top:10px">Вернуться в лобби</button>
+<div class="crown">🏆</div><h2 id="winTitle"></h2>
+<p id="winSub">набирает ровно 1000 очков и побеждает!</p>
+<div id="winRows"></div>
+<button class="btn primary wide" id="btnNewGame" style="margin-top:16px">🔄 Новая игра тем же составом</button>
+<button class="btn ghost wide" id="btnLobby" style="margin-top:8px">↩ Вернуться в лобби</button>
+<button class="btn danger wide" id="btnDeleteRoomWin" style="margin-top:8px">🗑 Удалить комнату</button>
+<button class="linkBtn" id="btnHomeFromWin" style="margin-top:12px">← Вернуться к списку комнат</button>
 </div></div>
 
 <div id="toast"></div>
