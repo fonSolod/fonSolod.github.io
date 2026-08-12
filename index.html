@@ -20,13 +20,40 @@
 <body>
 <div id="app">
 
+<!-- АВТОРИЗАЦИЯ -->
+<section id="auth">
+<div class="panel" id="authCard">
+<div class="logo"><h1>ТЫЩА</h1></div>
+<p class="tagline">Войдите или создайте аккаунт, чтобы играть с разных устройств</p>
+<div class="authTabs">
+<button id="tabLogin" class="atab on">Вход</button>
+<button id="tabReg" class="atab">Регистрация</button>
+</div>
+<p class="setupLabel">E-mail или ник</p>
+<input id="authLogin" class="bigInput" placeholder="you@mail.ru или Ник" autocomplete="username">
+<p class="setupLabel">Пароль</p>
+<input id="authPass" type="password" class="bigInput" placeholder="Минимум 6 символов" autocomplete="current-password">
+<div id="regExtra" hidden>
+<p class="setupLabel">Повторите пароль</p>
+<input id="authPass2" type="password" class="bigInput" autocomplete="new-password">
+<p class="setupLabel">Имя в игре (необязательно)</p>
+<input id="authName" class="bigInput" maxlength="14" placeholder="Будет видно другим игрокам">
+</div>
+<p class="authErr" id="authErr" hidden></p>
+<button id="authSubmit" class="btn primary wide">Войти</button>
+<button id="forgotBtn" class="linkBtn">Забыли пароль?</button>
+<p class="authHint">Вместо e-mail можно зарегистрироваться по нику (3–16 символов: буквы, цифры, «_», «-»). Вход по нику — так же, как при регистрации. Восстановление пароля возможно только для e-mail.</p>
+</div>
+</section>
+  
   <!-- ВХОД -->
-  <section id="join">
+  <section id="join" hidden>
     <div class="panel" id="joinCard">
       <div class="logo"><h1>ТЫЩА</h1></div>
       <p class="tagline">Сетевая версия · играйте с разных устройств по коду комнаты</p>
-      <p class="setupLabel">Ваше имя</p>
-      <input id="nameInput" class="bigInput" maxlength="14" placeholder="Игрок">
+      <p class="whoami" id="joinWho"></p>
+      <!-- …кнопки создания/входа без изменений… -->
+      <button class="linkBtn" id="joinLogout">Выйти из аккаунта</button>
       <button id="createBtn" class="btn primary wide">🎲 Создать комнату</button>
       <div class="or">— или —</div>
       <div class="joinRow">
@@ -56,6 +83,7 @@
       <button id="startGameBtn" class="btn primary wide" style="margin-top:16px">Начать игру</button>
       <p class="pickHint" id="lobbyHint"></p>
       <button class="tbtn" id="leaveBtn" style="margin-top:14px;width:100%">← Выйти из комнаты</button>
+      <button class="linkBtn" id="lobbyLogout">Сменить аккаунт</button>
     </div>
   </section>
 
@@ -66,6 +94,8 @@
       <button class="codeChip" id="codeChip" title="Скопировать ссылку">····</button>
       <button class="tbtn" id="btnNotify" title="Уведомления о ходе">🔕</button>
       <div class="topBtns">
+        <span class="accChip" id="accountChip"></span>
+        <button class="tbtn" id="btnLogout" title="Выйти из аккаунта">🔓 Сменить аккаунт</button>
         <button class="tbtn" id="btnSound">🔊</button>
         <button class="tbtn" id="btnRules">📖 Правила</button>
         <button class="tbtn" id="btnLeaveGame">Выйти</button>
