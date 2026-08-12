@@ -17,12 +17,12 @@ measurementId:"G-F9PW364YX8"
 
 export const configured=!String(firebaseConfig.apiKey).includes('ВСТАВЬТЕ');
 export let db=null,auth=null;
-export let ref=null,update=null,set=null,get=null,onValue=null,onDisconnect=null;
+export let ref=null,update=null,set=null,get=null,onValue=null,onDisconnect=null,remove=null;
 export let onAuthStateChanged=null,createUserWithEmailAndPassword=null,signInWithEmailAndPassword=null,signOut=null,sendPasswordResetEmail=null;
 
 if(configured){
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-({ref,update,set,get,onValue,onDisconnect}=FDB);
+({ref,update,set,get,onValue,onDisconnect,remove}=FDB);
 db=FDB.getDatabase(app);
 ({onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,sendPasswordResetEmail}=FA);
 auth=FA.getAuth(app);
