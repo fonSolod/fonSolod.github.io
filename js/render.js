@@ -9,7 +9,11 @@ import {canBank} from './ledger.js';
 /* ---------- экраны ---------- */
 export function showScreen(name){['auth','home','lobby','game'].forEach(s=>$(s).hidden=(s!==name));}
 export function renderScreen(prev){
-if(!state.room||!state.room.meta){showScreen('home');return;}
+if(!state.room||!state.room.meta){
+$('winOverlay').hidden=true;
+showScreen('home');return;
+}
+if(state.room.meta.status!=='finished')$('winOverlay').hidden=true;
 if(state.room.meta.status==='lobby'){renderLobby();showScreen('lobby');}
 else{renderGame(prev);showScreen('game');}
 }
