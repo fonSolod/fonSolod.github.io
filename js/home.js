@@ -57,13 +57,12 @@ chips.push(specOk?'<span class="chip">👁 наблюдатели</span>':'<span
 if(iAmCreator)chips.push('<span class="chip mine">организатор</span>');
 if(iAmIn)chips.push('<span class="chip mine">вы в комнате</span>');
 let btnHtml='';
-if(iAmIn)btnHtml=`<button class="btn primary" data-act="enter" data-code="${code}">Продолжить</button>`;
-else if(status==='lobby'&&!full)btnHtml=`<button class="btn primary" data-act="enter" data-code="${code}">Войти</button>`;
-else if(status==='lobby')btnHtml=`<button class="btn ghost blocked" disabled>Заполнена</button>`;
-else if(specOk)btnHtml=`<button class="btn ghost" data-act="enter" data-code="${code}">👁 Наблюдать</button>`;
-else btnHtml=`<button class="btn ghost blocked" disabled>🚫 Без наблюдателей</button>`;
-if(iAmCreator||state.isAdmin)btnHtml+=`<button class="btn ghost rcDel" data-act="delroom" data-code="${code}">🗑 Удалить</button>`;
-const c=document.createElement('div');
+if(iAmIn)btnHtml=`<button class="btn primary rcMain" data-act="enter" data-code="${code}" title="Продолжить игру">▶</button>`;
+else if(status==='lobby'&&!full)btnHtml=`<button class="btn primary rcMain" data-act="enter" data-code="${code}" title="Войти в комнату">▶</button>`;
+else if(status==='lobby')btnHtml=`<button class="btn ghost rcMain blocked" disabled title="Комната заполнена">🔒</button>`;
+else if(specOk)btnHtml=`<button class="btn ghost rcMain" data-act="enter" data-code="${code}" title="Наблюдать за игрой">👁</button>`;
+else btnHtml=`<button class="btn ghost rcMain blocked" disabled title="Наблюдатели запрещены">🚫</button>`;
+if(iAmCreator||state.isAdmin)btnHtml+=`<button class="btn ghost rcDel" data-act="delroom" data-code="${code}" title="Удалить комнату">🗑</button>`;const c=document.createElement('div');
 c.className='roomCard'+(inactive?' inactive':'');
 c.innerHTML=`<div class="rcTop">
 <div><span class="rcCode">${code}</span><span class="rcOrg">организатор: ${esc(players[m.createdBy]?players[m.createdBy].name:'—')}</span></div>
