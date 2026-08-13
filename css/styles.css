@@ -227,3 +227,5 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .pname.turnName{border:1.5px solid var(--gold);border-radius:9px;padding:2px 9px;background:rgba(245,196,81,.14);box-shadow:0 0 10px rgba(245,196,81,.25)}
 /* имя организатора в рамке */
 .rcOrg{display:inline-block;border:1.5px solid #d4574a;border-radius:8px;padding:2px 10px;background:rgba(212,87,74,.12);color:#ffb3a6;font-size:13px;font-weight:600;margin-left:8px;vertical-align:middle;max-width:calc(100% - 100px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reqMark{color:var(--bad)}
+.fieldHint.warnHint{color:#ffb3a6}
