@@ -72,7 +72,7 @@ catch(e){showAuthErr(authM.authErrorMsg(e));}
 
 function updateSettingsMenu(){
 if(!$('settingsMenu'))return;
-const notifOn=(typeof notify.notifGranted==='function')?notify.notifGranted():false;
+const notifOn=(typeof notify.notifActive==='function')?notify.notifActive():false;
 if($('smNotify'))$('smNotify').textContent=notifOn?'🔔 Уведомления: вкл':'🔕 Уведомления: выкл';
 if($('smSound'))$('smSound').textContent=state.soundOn?'🔊 Звук: вкл':'🔇 Звук: выкл';
 if($('smLeaveParty'))$('smLeaveParty').hidden=!(state.isMember&&state.room&&state.room.meta&&state.room.meta.status==='playing');
@@ -141,7 +141,7 @@ document.addEventListener('click',e=>{
 const m=$('settingsMenu');
 if(m&&!m.hidden&&!m.contains(e.target))m.hidden=true;
 });
-if($('smNotify'))$('smNotify').onclick=()=>{notify.notifyToggle();updateSettingsMenu();};
+if($('smNotify'))$('smNotify').onclick=async()=>{await notify.notifyToggle();updateSettingsMenu();};
 if($('smSound'))$('smSound').onclick=()=>{state.soundOn=!state.soundOn;updateSettingsMenu();};
 if($('smRules'))$('smRules').onclick=()=>{$('modal').hidden=false;$('settingsMenu').hidden=true;};
 if($('smDeleteRoom'))$('smDeleteRoom').onclick=async()=>{$('settingsMenu').hidden=true;if(await net.deleteCurrentRoom())render.showScreen('home');};
