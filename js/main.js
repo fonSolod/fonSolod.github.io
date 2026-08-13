@@ -15,6 +15,7 @@ try{notify.handleTurnChange(prev);}catch(e){console.error('onSnapshot/handleTurn
 try{render.checkToast();}catch(e){console.error('onSnapshot/checkToast:',e);}
 try{render.renderScreen(prev);}catch(e){console.error('onSnapshot/renderScreen:',e);}
 try{actions.scheduleAutoAdvance();}catch(e){console.error('onSnapshot/scheduleAutoAdvance:',e);}
+try{actions.updateSettingsMenu();}catch(e){console.error('onSnapshot/updateSettingsMenu:',e);}
 };
 ui.renderActions=render.renderActions;
 ui.renderHome=home.renderHome;
@@ -69,6 +70,18 @@ try{await authM.resetPassword(login);showAuthErr('Письмо для сброс
 catch(e){showAuthErr(authM.authErrorMsg(e));}
 };
 
+function updateSettingsMenu(){
+if(!$('settingsMenu'))return;
+const notifOn=(typeof notify.notifGranted==='function')?notify.notifGranted():false;
+if($('smNotify'))$('smNotify').textContent=notifOn?'🔔 Уведомления: вкл':'🔕 Уведомления: выкл';
+if($('smSound'))$('smSound').textContent=state.soundOn?'🔊 Звук: вкл':'🔇 Звук: выкл';
+if($('smLeaveParty'))$('smLeaveParty').hidden=!(state.isMember&&state.room&&state.room.meta&&state.room.meta.status==='playing');
+if($('smDeleteRoom')){
+const iAmCreator=state.room&&state.room.meta&&state.room.meta.createdBy===state.myPid;
+$('smDeleteRoom').hidden=!(iAmCreator||state.isAdmin);
+}
+}
+
 /* ---------- сессия ---------- */
 authM.watchAuth(async user=>{
 if(user){
@@ -105,27 +118,45 @@ $('roomFilter').oninput=()=>{state.homeFilter=$('roomFilter').value;home.renderH
 
 /* ---------- статические кнопки ---------- */
 $('leaveBtn').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;render.showScreen('home');};
-$('btnLeaveGame').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;$('winOverlay').hidden=true;render.showScreen('home');};
 $('codeChip').onclick=net.copyInvite;
 $('copyLink').onclick=net.copyInvite;
-$('btnRules').onclick=()=>$('modal').hidden=false;
 $('modalClose').onclick=()=>$('modal').hidden=true;
 $('modal').onclick=e=>{if(e.target.id==='modal')$('modal').hidden=true;};
-$('btnSound').onclick=()=>{state.soundOn=!state.soundOn;$('btnSound').textContent=state.soundOn?'🔊':'🔇';};
-$('btnNotify').onclick=notify.notifyToggle;
 $('startGameBtn').onclick=actions.startGame;
 $('btnLobby').onclick=actions.returnToLobby;
-// удаление комнаты из лобби и из игры
 $('lobbyDeleteBtn').onclick=async()=>{if(await net.deleteCurrentRoom())render.showScreen('home');};
-$('btnDeleteRoom').onclick=async()=>{if(await net.deleteCurrentRoom())render.showScreen('home');};
-// экран завершения партии
 $('btnNewGame').onclick=()=>actions.newGameSamePlayers();
-$('btnLobby').onclick=()=>actions.returnToLobby();
 $('btnDeleteRoomWin').onclick=async()=>{if(await net.deleteCurrentRoom())render.showScreen('home');};
 $('btnHomeFromWin').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;$('winOverlay').hidden=true;render.showScreen('home');};
-$('btnLeaveParty').onclick=async()=>{
-if(await net.leaveParty()){render.showScreen('home');}
+
+/* ---------- меню настроек ---------- */
+if($('btnSettings')){
+$('btnSettings').onclick=(e)=>{
+e.stopPropagation();
+updateSettingsMenu();
+$('settingsMenu').hidden=!$('settingsMenu').hidden;
 };
+}
+document.addEventListener('click',e=>{
+const m=$('settingsMenu');
+if(m&&!m.hidden&&!m.contains(e.target))m.hidden=true;
+});
+if($('smNotify'))$('smNotify').onclick=()=>{notify.notifyToggle();updateSettingsMenu();};
+if($('smSound'))$('smSound').onclick=()=>{state.soundOn=!state.soundOn;updateSettingsMenu();};
+if($('smRules'))$('smRules').onclick=()=>{$('modal').hidden=false;$('settingsMenu').hidden=true;};
+if($('smDeleteRoom'))$('smDeleteRoom').onclick=async()=>{$('settingsMenu').hidden=true;if(await net.deleteCurrentRoom())render.showScreen('home');};
+if($('smLeaveParty'))$('smLeaveParty').onclick=async()=>{$('settingsMenu').hidden=true;if(await net.leaveParty())render.showScreen('home');};
+if($('smLeaveGame'))$('smLeaveGame').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;$('winOverlay').hidden=true;render.showScreen('home');};
+if($('smLogout'))$('smLogout').onclick=()=>authM.logout();
+
+/* ---------- раскрывающиеся панели ---------- */
+function wireCollapsible(toggleId,panelId){
+const t=$(toggleId),p=$(panelId);
+if(!t||!p)return;
+t.onclick=()=>p.classList.toggle('closed');
+}
+wireCollapsible('scoreToggle','scorePanel');
+wireCollapsible('logToggle','logPanel');
 
 
 /* ---------- делегирование динамических кнопок ---------- */
