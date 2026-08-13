@@ -15,7 +15,7 @@ try{notify.handleTurnChange(prev);}catch(e){console.error('onSnapshot/handleTurn
 try{render.checkToast();}catch(e){console.error('onSnapshot/checkToast:',e);}
 try{render.renderScreen(prev);}catch(e){console.error('onSnapshot/renderScreen:',e);}
 try{actions.scheduleAutoAdvance();}catch(e){console.error('onSnapshot/scheduleAutoAdvance:',e);}
-try{actions.updateSettingsMenu();}catch(e){console.error('onSnapshot/updateSettingsMenu:',e);}
+try{updateSettingsMenu();}catch(e){console.error('onSnapshot/updateSettingsMenu:',e);}
 };
 ui.renderActions=render.renderActions;
 ui.renderHome=home.renderHome;
