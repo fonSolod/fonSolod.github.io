@@ -62,7 +62,7 @@ else if(status==='lobby'&&!full)btnHtml=`<button class="btn primary" data-act="e
 else if(status==='lobby')btnHtml=`<button class="btn ghost blocked" disabled>Заполнена</button>`;
 else if(specOk)btnHtml=`<button class="btn ghost" data-act="enter" data-code="${code}">👁 Наблюдать</button>`;
 else btnHtml=`<button class="btn ghost blocked" disabled>🚫 Без наблюдателей</button>`;
-if(iAmCreator||state.isAdmin)btnHtml+=` <button class="btn ghost rcDel" data-act="delroom" data-code="${code}" title="Удалить комнату">🗑</button>`;
+if(iAmCreator||state.isAdmin)btnHtml+=`<button class="btn ghost rcDel" data-act="delroom" data-code="${code}">🗑 Удалить</button>`;
 const c=document.createElement('div');
 c.className='roomCard'+(inactive?' inactive':'');
 c.innerHTML=`<div class="rcTop">
