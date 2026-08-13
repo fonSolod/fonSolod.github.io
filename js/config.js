@@ -19,11 +19,12 @@ export const configured=!String(firebaseConfig.apiKey).includes('ВСТАВЬТ�
 export let db=null,auth=null;
 export let ref=null,update=null,set=null,get=null,onValue=null,onDisconnect=null,remove=null;
 export let onAuthStateChanged=null,createUserWithEmailAndPassword=null,signInWithEmailAndPassword=null,signOut=null,sendPasswordResetEmail=null;
+export let updatePassword=null,updateEmail=null,deleteUser=null,reauthenticateWithCredential=null,EmailAuthProvider=null;
 
 if(configured){
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 ({ref,update,set,get,onValue,onDisconnect,remove}=FDB);
 db=FDB.getDatabase(app);
-({onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,sendPasswordResetEmail}=FA);
+({onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,sendPasswordResetEmail,updatePassword,updateEmail,deleteUser,reauthenticateWithCredential,EmailAuthProvider}=FA);
 auth=FA.getAuth(app);
 }
