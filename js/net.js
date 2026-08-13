@@ -130,10 +130,11 @@ export async function joinRoom(code){
 const s=await get(ref(db,`rooms/${code}`));
 if(!s.exists()){toast('Комната не найдена','warn');return;}
 const data=s.val();state.roomCode=code;
-if(data.players&&data.players[state.uid]){
+if(data.players&&data.players[state.uid]&&!data.players[state.uid].left){
 // возвращение: я уже игрок этой комнаты (с любого устройства)
 state.myPid=state.uid;state.isMember=true;
-}else{
+}
+else{
 // легаси-возврат по сохранённому pid (старые комнаты)
 const saved=localStorage.getItem('tyscha_pid_'+code);
 const owner=localStorage.getItem('tyscha_pidowner_'+code);
