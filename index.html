@@ -60,6 +60,7 @@
 <div class="logo"><h1>ТЫЩА</h1></div>
 <p class="tagline">Сетевая версия · играйте с разных устройств</p>
 <p class="whoami" id="homeWho"></p>
+<button class="btn ghost wide" id="homeProfileBtn" style="margin-top:10px">👤 Настройки аккаунта</button>
 <button id="showCreateBtn" class="btn primary wide">➕ Создать комнату</button>
 <div id="createPanel" hidden style="margin-top:14px">
 <label class="checkRow"><input type="checkbox" id="optHidden"> 🔒 Приватная (не показывать в общем списке)</label>
@@ -185,6 +186,45 @@
   <button class="btn primary wide" id="modalClose" style="margin-top:20px">Понятно</button>
 </div></div>
 
+<div id="profileModal" hidden><div class="modalBox">
+<h2>👤 Аккаунт</h2>
+<div class="profInfo">
+<div>Ник: <b id="profNick">—</b></div>
+<div>E-mail: <b id="profEmail">не привязан</b></div>
+</div>
+
+<p class="setupLabel">Имя в игре (до 14 символов)</p>
+<div class="profRow">
+<input id="profName" class="bigInput" maxlength="14" placeholder="Видно другим игрокам">
+<button id="saveNameBtn" class="btn ghost">Сохранить</button>
+</div>
+
+<p class="setupLabel" style="margin-top:20px">Смена пароля</p>
+<input id="profCurPass" type="password" class="bigInput" placeholder="Текущий пароль">
+<input id="profPass" type="password" class="bigInput" placeholder="Новый пароль (минимум 6 символов)">
+<input id="profPass2" type="password" class="bigInput" placeholder="Повторите новый пароль">
+<button id="savePassBtn" class="btn ghost wide">Сменить пароль</button>
+
+<p class="setupLabel" style="margin-top:20px" id="emailLabel">Привязать e-mail</p>
+<input id="profEmailInput" type="email" class="bigInput" placeholder="you@mail.ru">
+<input id="profEmailPass" type="password" class="bigInput" placeholder="Пароль для подтверждения">
+<button id="saveEmailBtn" class="btn ghost wide">Привязать e-mail</button>
+<p class="fieldHint">E-mail нужен только для восстановления пароля.</p>
+
+<p class="setupLabel" style="margin-top:20px">Смена ника</p>
+<input id="profNickInput" class="bigInput" maxlength="16" placeholder="Новый ник (3–16 символов)">
+<input id="profNickPass" type="password" class="bigInput" placeholder="Пароль для подтверждения">
+<button id="saveNickBtn" class="btn ghost wide">Сменить ник</button>
+<p class="fieldHint">Старый ник освободится и перестанет работать для входа. Пароль нужен только для аккаунтов без e-mail.</p>
+
+<p class="setupLabel" style="margin-top:24px;color:var(--bad)">Опасная зона</p>
+<input id="profDelPass" type="password" class="bigInput" placeholder="Пароль для подтверждения">
+<button id="deleteAccountBtn" class="btn danger wide">Удалить аккаунт</button>
+
+<button class="btn primary wide" id="profileClose" style="margin-top:18px">Закрыть</button>
+</div></div>  
+
+  
 <div id="winOverlay" hidden><div class="winCard">
 <div class="crown">🏆</div><h2 id="winTitle"></h2>
 <p id="winSub">набирает ровно 1000 очков и побеждает!</p>
