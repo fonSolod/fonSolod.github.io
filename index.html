@@ -29,22 +29,27 @@
 <button id="tabLogin" class="atab on">Вход</button>
 <button id="tabReg" class="atab">Регистрация</button>
 </div>
+<div id="loginFields">
 <p class="setupLabel">E-mail или ник</p>
 <input id="authLogin" class="bigInput" placeholder="you@mail.ru или Ник" autocomplete="username">
-<p class="fieldHint">Ник: от 3 до 16 символов (буквы, цифры, «_», «-»). E-mail — без ограничений.</p>
+</div>
+<div id="regTop" hidden>
+<p class="setupLabel">Ник <span class="reqMark">*</span></p>
+<input id="authNick" class="bigInput" maxlength="16" placeholder="От 3 до 16 символов" autocomplete="username">
+<p class="fieldHint">Буквы (любые), цифры, «_» и «-», без пробелов. Вход — по нику или e-mail.</p>
+<p class="setupLabel">E-mail (необязательно)</p>
+<input id="authEmail" type="email" class="bigInput" placeholder="Для восстановления доступа" autocomplete="email">
+<p class="fieldHint warnHint">⚠ Если не указать e-mail, восстановить доступ к аккаунту при потере пароля будет невозможно.</p>
+</div>
 <p class="setupLabel">Пароль</p>
 <input id="authPass" type="password" class="bigInput" placeholder="Минимум 6 символов" autocomplete="current-password">
-<div id="regExtra" hidden>
+<div id="regBottom" hidden>
 <p class="setupLabel">Повторите пароль</p>
 <input id="authPass2" type="password" class="bigInput" autocomplete="new-password">
-<p class="setupLabel">Имя в игре (необязательно)</p>
-<input id="authName" class="bigInput" maxlength="14" placeholder="Будет видно другим игрокам">
-  <p class="fieldHint">Максимум 14 символов — это имя видят другие игроки.</p>
 </div>
 <p class="authErr" id="authErr" hidden></p>
 <button id="authSubmit" class="btn primary wide">Войти</button>
 <button id="forgotBtn" class="linkBtn">Забыли пароль?</button>
-<p class="authHint">Вместо e-mail можно зарегистрироваться по нику (3–16 символов: буквы, цифры, «_», «-»). Вход по нику — так же, как при регистрации. Восстановление пароля возможно только для e-mail.</p>
 </div>
 </section>
   
