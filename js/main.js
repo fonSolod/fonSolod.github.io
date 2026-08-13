@@ -31,7 +31,9 @@ function setAuthMode(m){
 authMode=m;
 $('tabLogin').classList.toggle('on',m==='login');
 $('tabReg').classList.toggle('on',m==='reg');
-$('regExtra').hidden=(m!=='reg');
+$('loginFields').hidden=(m!=='login');
+$('regTop').hidden=(m!=='reg');
+$('regBottom').hidden=(m!=='reg');
 $('forgotBtn').hidden=(m!=='login');
 $('authSubmit').textContent=m==='reg'?'Зарегистрироваться':'Войти';
 $('authErr').hidden=true;
@@ -41,23 +43,21 @@ function setAuthBusy(b){$('authSubmit').disabled=b;$('authSubmit').style.opacity
 $('tabLogin').onclick=()=>setAuthMode('login');
 $('tabReg').onclick=()=>setAuthMode('reg');
 $('authSubmit').onclick=async()=>{
-const login=$('authLogin').value.trim();
-const pass=$('authPass').value;
 $('authErr').hidden=true;
-if(!login){showAuthErr('Укажите e-mail или ник');return;}
+const pass=$('authPass').value;
 setAuthBusy(true);
 try{
 if(authMode==='reg'){
+const nick=$('authNick').value.trim();
+const email=$('authEmail').value.trim();
+if(!nick)throw new Error('Укажите ник');
 if(pass.length<6)throw new Error('Пароль: минимум 6 символов');
 if(pass!==$('authPass2').value)throw new Error('Пароли не совпадают');
-if(!authM.isEmailLike(login)){
-if(!authM.isValidNick(login))throw new Error('Ник: 3–16 символов — буквы, цифры, «_» или «-», без пробелов');
-const tech=await authM.nickToTechEmail(login);
-const ok=confirm('«'+login+'» не похож на e-mail.\n\nВосстановление пароля будет недоступно.\nЛогин сохранится как ник (технический адрес: '+tech+').\n\nПродолжить регистрацию без почты?');
-if(!ok){setAuthBusy(false);return;}
-}
-await authM.register({login,password:pass,name:$('authName').value});
+if(email&&!authM.isEmailLike(email))throw new Error('Некорректный e-mail');
+await authM.register({nick,email,password:pass});
 }else{
+const login=$('authLogin').value.trim();
+if(!login)throw new Error('Укажите e-mail или ник');
 await authM.login({login,password:pass});
 }
 }catch(e){showAuthErr(authM.authErrorMsg(e));}
