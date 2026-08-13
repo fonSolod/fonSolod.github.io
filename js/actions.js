@@ -190,7 +190,7 @@ launchGame();
 export function returnToLobby(){
 const {room,myPid}=state;
 if(room.meta.createdBy!==myPid)return;
-writeRoom({meta:{status:'lobby',createdAt:room.meta.createdAt,createdBy:room.meta,status:'lobby'},game:null,log:null});
+writeRoom({meta:{...room.meta,status:'lobby'},game:null,log:null});
 }
 
 /* ---------- встряхивание телефона ---------- */
