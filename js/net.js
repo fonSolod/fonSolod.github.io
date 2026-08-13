@@ -150,12 +150,14 @@ toast('Организатор запретил наблюдателей в эт�
 localStorage.setItem('tyscha_pid_'+code,state.myPid);
 localStorage.setItem('tyscha_pidowner_'+code,state.uid);
 if(state.isMember){
+const ordLen=(data.order||[]).length;
 await update(ref(db,`rooms/${code}`),{
-[`players/${state.myPid}`]:playerObj(uniqueName(getName(),data.players),pids.length),
-[`order/${pids.length}`]:state.myPid,
+[`players/${state.myPid}`]:playerObj(uniqueName(getName(),data.players),ordLen),
+[`order/${ordLen}`]:state.myPid,
 'meta/lastActive':Date.now()
 });
-}else toast('Игра уже идёт — вы наблюдатель','warn');
+}
+else toast('Игра уже идёт — вы наблюдатель','warn');
 }
 }
 localStorage.setItem('tyscha_last',code);
