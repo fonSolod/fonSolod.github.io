@@ -181,7 +181,11 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .rcCode{font-family:'Unbounded';font-weight:800;font-size:20px;letter-spacing:3px;color:var(--gold);margin-right:10px}
 .rcOrg{font-size:12.5px;color:var(--muted)}
 .rcChips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
-.rcBtns{display:flex;gap:8px;flex:none;align-items:center}
+.rcBtns{display:flex;gap:8px;flex:none;align-items:center}   /* десктоп: в ряд */
+@media(max-width:560px){
+.rcBtns{flex-direction:column;align-items:stretch;min-width:150px}
+.rcBtns .btn{width:100%}
+}
 .rcDel{padding:10px 12px}
 .chip.st-lobby{color:var(--gold2);border-color:rgba(245,196,81,.4)}
 .chip.st-playing{color:#a5f0c3;border-color:rgba(125,227,161,.5)}
