@@ -106,13 +106,28 @@ pushLogIn(upd,`🛢 ${p.name} остаётся в бочке: на выход ${
 }
 }
 import {hodWord} from './util.js';
+// Зачеркнуть ВСЕ записи игрока (для самосвала)
+export function crossAllHist(upd,pid){
+const hist=projHist(upd,pid);
+hist.forEach(e=>{e.x=true;});
+commitHist(upd,pid,hist);
+}
+
+// Полный самосвал для одного игрока: зачеркнуть всё, добавить 0, сбросить состояние
+export function applySamosvalTo(upd,pid){
+crossAllHist(upd,pid);
+pushScore(upd,pid,0);
+upd[`players/${pid}/opened`]=true;
+upd[`players/${pid}/zeroStreak`]=0;
+clearBarrelState(upd,pid);
+}
+
+// Замените существующую applySamosvalAll на эту:
 export function applySamosvalAll(upd){
 state.room.order.forEach(pid=>{
 const val=projOf(upd,pid,'score');
 if(val===SAMOSVAL){
-pushScore(upd,pid,0);
-upd[`players/${pid}/opened`]=true;
-clearBarrelState(upd,pid);
+applySamosvalTo(upd,pid);
 pushLogIn(upd,`🚛 Самосвал! ${state.room.players[pid].name} обнуляется (было 555)`,'dump');
 }
 });
