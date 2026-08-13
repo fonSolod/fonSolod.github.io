@@ -25,9 +25,7 @@ const box=$('lobbyPlayers');box.innerHTML='';
 state.room.order.forEach(pid=>{
 const p=state.room.players[pid];if(!p)return;
 const r=document.createElement('div');r.className='playerRow';
-r.innerHTML=`<span class="pdotBig" style="background:${PC[p.seat]};color:${PC[p.seat]}"></span>
-<b>${esc(p.name)}</b>${pid===state.room.meta.createdBy?'<span class="badge">организатор</span>':''}
-<span class="onlineDot" style="background:${p.online?'#7de3a1':'#5a6f64'};box-shadow:0 0 8px ${p.online?'#7de3a1':'none'}"></span>`;
+r.innerHTML=`<span class="pdotBig" style="background:${PC[p.seat]};color:${PC[p.seat]}"></span> <b>${esc(p.name)}</b>${pid===state.room.meta.createdBy?'<span class="badge">организатор</span>':''} <span class="onlineDot" style="background:${p.online?'#7de3a1':'#5a6f64'};box-shadow:0 0 8px ${p.online?'#7de3a1':'none'}"></span>`;
 box.appendChild(r);
 });
 $('lobbyCount').textContent=state.room.order.length;
@@ -43,12 +41,9 @@ $('lobbyHint').textContent=!iAmCreator?'Ожидание организатор�
 /* ---------- игра: общий рендер ---------- */
 export function renderGame(prev){
 $('codeChip').textContent=state.roomCode;
-const iAmCreator=state.room.meta.createdBy===state.myPid;
-if($('btnDeleteRoom'))$('btnDeleteRoom').hidden=!(iAmCreator||state.isAdmin);
-if($('btnLeaveParty'))$('btnLeaveParty').hidden=!(state.isMember&&state.room.meta.status==='playing');
 if(!state.room.game)return;
 maybeIncomingAnim(prev);
-renderPlayers();renderTrack();renderDice();renderTray();renderTurnInfo();renderActions();renderLog();
+renderPlayers();renderTrack();renderDice();renderTray();renderTurnInfo();renderActions();renderScoreTable();renderLog();
 if(state.room.meta.status==='finished'){$('winOverlay').hidden=false;renderWin();}
 else $('winOverlay').hidden=true;
 }
@@ -65,7 +60,6 @@ c.className='pcard'+(act?' active':'')+(barrel?' bcard':'');
 c.style.setProperty('--pc',PC[p.seat]);
 const hist=p.hist||[];
 if(hist.length)c.title='История записей: '+(p.opened?'':'(не открыт) ')+hist.map(e=>e.x?'✗'+e.v:e.v).join(' → ');
-// потенциальный счёт активного игрока
 let potHtml='';
 if(act&&state.room.meta.status==='playing'&&g&&g.turnTotal>0&&(g.phase==='choose'||g.phase==='roll')){
 const pot=p.score+g.turnTotal;
@@ -124,7 +118,6 @@ g.innerHTML='<div class="face">'+Array.from({length:9},()=>'<span class="cell"><
 box.appendChild(g);
 }
 }
-// анимация «прилетевшего» броска соперника
 export function maybeIncomingAnim(prev){
 if(!prev||!prev.game||state.animLock||isMyTurn())return;
 const g=state.room.game;
@@ -155,6 +148,49 @@ tb.appendChild(col);
 $('turnTotalVal').textContent=state.room.game.turnTotal||0;
 }
 
+/* ---------- таблица очков по игрокам ---------- */
+export function renderScoreTable(){
+const wrap=$('scoreTableBody');
+if(!wrap)return;
+wrap.innerHTML='';
+const order=state.room.order||[];
+if(!order.length){wrap.innerHTML='<p class="emptyNote">Пока нет игроков</p>';return;}
+let maxLen=0;
+order.forEach(pid=>{
+const p=state.room.players[pid];
+if(p&&p.hist&&p.hist.length>maxLen)maxLen=p.hist.length;
+});
+const table=document.createElement('table');
+table.className='scoreTable';
+const thead=document.createElement('tr');
+const numTh=document.createElement('th');numTh.className='rowNum';numTh.textContent='#';thead.appendChild(numTh);
+order.forEach(pid=>{
+const p=state.room.players[pid];
+const th=document.createElement('th');
+th.textContent=p?p.name:'—';
+if(p)th.style.color=PC[p.seat];
+thead.appendChild(th);
+});
+table.appendChild(thead);
+for(let i=0;i<maxLen;i++){
+const tr=document.createElement('tr');
+const numTd=document.createElement('td');numTd.className='rowNum';numTd.textContent=i+1;tr.appendChild(numTd);
+order.forEach(pid=>{
+const p=state.room.players[pid];
+const td=document.createElement('td');
+const entry=p&&p.hist?p.hist[i]:null;
+if(entry){
+td.textContent=entry.v;
+if(entry.x)td.classList.add('crossed');
+else if(getBarrel(entry.v))td.classList.add('inBarrel');
+}
+tr.appendChild(td);
+});
+table.appendChild(tr);
+}
+wrap.appendChild(table);
+}
+
 /* ---------- информация о ходе ---------- */
 export function renderTurnInfo(){
 const g=state.room.game,p=state.room.players[g.current];
@@ -176,7 +212,7 @@ if(left===1)cls+=' bad';
 }else{
 const left=TARGET-(p.score+(g.turnTotal||0));
 if(left<0){req=`⚠ Перебор на ${-left}: «Хватит» даст точку ${p.dots+1}/${DOT_LIMIT}`;cls+=' bad';}
-else if(left===0){req='🏆 Ровно 1000 — жмите «Хватить»!';cls+=' win';}
+else if(left===0){req='🏆 Ровно 1000 — жмите «Хватит»!';cls+=' win';}
 else req=`Осталось ${left} ${ptsWord(left)}`;
 }
 }
@@ -210,9 +246,9 @@ if(isTouch){const h=document.createElement('div');h.className='pickHint';h.textC
 const n=(g.dice||[]).length;
 A.appendChild(btn('ghost',`🎲 Бросить ещё (${n} ${kubWord(n)})`,'roll'));
 const chk=canBank(),ns=p.score+g.turnTotal;
-let label=`💰 Хватить (+${g.turnTotal})`,cls='primary';
-if(ns===TARGET){label='🏆 Хватить — ровно 1000!';cls='goldWin';}
-else if(ns>TARGET){label=`⚠️ Хватить — будет точка ${p.dots+1}/${DOT_LIMIT}`;cls='danger';}
+let label=`💰 Хватит (+${g.turnTotal})`,cls='primary';
+if(ns===TARGET){label='🏆 Хватит — ровно 1000!';cls='goldWin';}
+else if(ns>TARGET){label=`⚠️ Хватит — будет точка ${p.dots+1}/${DOT_LIMIT}`;cls='danger';}
 const b=btn(cls,label,'bank');if(!chk.ok)b.classList.add('blocked');
 A.appendChild(b);
 if(!chk.ok){const h=document.createElement('div');h.className='pickHint';h.textContent=chk.why;A.appendChild(h);}
@@ -222,14 +258,15 @@ if(isTouch){const h=document.createElement('div');h.className='pickHint';h.textC
 
 /* ---------- журнал (новые записи сверху) ---------- */
 export function renderLog(){
-const logBox=$('log'),list=$('logList');
+const logBox=$('logBody'),list=$('logList');
+if(!list)return;
 const entries=Object.values(state.room.log||{}).sort((a,b)=>b.ts-a.ts||(b.s||0)-(a.s||0)).slice(0,60);
 list.innerHTML='';
 entries.forEach(e=>{
 const d=document.createElement('div');d.className='entry '+(e.k||'');d.textContent=e.t;list.appendChild(d);
 });
 const total=Object.keys(state.room.log||{}).length;
-if(total!==state.lastLogCount){state.lastLogCount=total;logBox.scrollTop=0;}
+if(total!==state.lastLogCount){state.lastLogCount=total;if(logBox)logBox.scrollTop=0;}
 }
 
 /* ---------- тосты по событиям журнала ---------- */
@@ -252,14 +289,10 @@ const active=all.filter(p=>!p.left).sort((a,b)=>b.score-a.score);
 const left=all.filter(p=>p.left).sort((a,b)=>b.score-a.score);
 let html='';
 active.forEach((p,i)=>{
-html+=`<div class="winRow${i===0&&p.name===state.room.players[winnerUid]?.name?' first':''}">
-<span class="place">${i+1}</span><span class="pdotBig" style="background:${PC[p.seat]}"></span>${esc(p.name)}
-<span class="wscore">${p.score}</span></div>`;
+html+=`<div class="winRow${i===0&&p.name===state.room.players[winnerUid]?.name?' first':''}"><span class="place">${i+1}</span><span class="pdotBig" style="background:${PC[p.seat]}"></span>${esc(p.name)} <span class="wscore">${p.score}</span></div>`;
 });
 left.forEach((p,i)=>{
-html+=`<div class="winRow left">
-<span class="place">—</span><span class="pdotBig" style="background:${PC[p.seat]}"></span>${esc(p.name)}
-<span class="wscore">${p.score}</span></div>`;
+html+=`<div class="winRow left"><span class="place">—</span><span class="pdotBig" style="background:${PC[p.seat]}"></span>${esc(p.name)} <span class="wscore">${p.score}</span></div>`;
 });
 $('winRows').innerHTML=html;
 const iAmCreator=state.room.meta.createdBy===state.myPid;
