@@ -7,7 +7,10 @@ import {playRollSound} from './sound.js';
 import {canBank} from './ledger.js';
 
 /* ---------- экраны ---------- */
-export function showScreen(name){['auth','home','lobby','game'].forEach(s=>$(s).hidden=(s!==name));}
+export function showScreen(name){
+['auth','home','lobby','game'].forEach(s=>$(s).hidden=(s!==name));
+if(name==='home'){const ci=$('codeInput');if(ci)ci.value='';}
+}
 export function renderScreen(prev){
 if(!state.room||!state.room.meta){
 $('winOverlay').hidden=true;
