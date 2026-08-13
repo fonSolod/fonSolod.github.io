@@ -42,7 +42,7 @@ list.forEach(x=>wrap.appendChild(roomCard(x,gray)));
 
 function roomCard({code,r},inactive){
 const m=r.meta,players=r.players||{};
-const iAmIn=!!players[state.uid];
+const iAmIn=!!players[state.uid]&&!players[state.uid].left;
 const iAmCreator=m.createdBy===state.uid;
 const status=m.status||'lobby';
 const cnt=(r.order||[]).length;
