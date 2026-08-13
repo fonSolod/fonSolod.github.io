@@ -11,10 +11,10 @@ import * as home from './home.js';
 import * as sound from './sound.js';
 
 ui.onSnapshot=(prev)=>{
-notify.handleTurnChange(prev);
-render.checkToast();
-render.renderScreen(prev);
-actions.scheduleAutoAdvance();
+try{notify.handleTurnChange(prev);}catch(e){console.error('onSnapshot/handleTurnChange:',e);}
+try{render.checkToast();}catch(e){console.error('onSnapshot/checkToast:',e);}
+try{render.renderScreen(prev);}catch(e){console.error('onSnapshot/renderScreen:',e);}
+try{actions.scheduleAutoAdvance();}catch(e){console.error('onSnapshot/scheduleAutoAdvance:',e);}
 };
 ui.renderActions=render.renderActions;
 ui.renderHome=home.renderHome;
@@ -124,7 +124,7 @@ $('btnLobby').onclick=()=>actions.returnToLobby();
 $('btnDeleteRoomWin').onclick=async()=>{if(await net.deleteCurrentRoom())render.showScreen('home');};
 $('btnHomeFromWin').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;$('winOverlay').hidden=true;render.showScreen('home');};
 $('btnLeaveParty').onclick=async()=>{
-if(await net.leaveParty()){net.stopRoomsWatch&&net.stopRoomsWatch();render.showScreen('home');}
+if(await net.leaveParty()){render.showScreen('home');}
 };
 
 
