@@ -130,18 +130,19 @@ export async function joinRoom(code){
 const s=await get(ref(db,`rooms/${code}`));
 if(!s.exists()){toast('Комната не найдена','warn');return;}
 const data=s.val();state.roomCode=code;
-if(data.players&&data.players[state.uid]&&!data.players[state.uid].left){
-// возвращение: я уже игрок этой комнаты (с любого устройства)
-state.myPid=state.uid;state.isMember=true;
-}
-else{
-// легаси-возврат по сохранённому pid (старые комнаты)
+const me=data.players&&data.players[state.uid];
 const saved=localStorage.getItem('tyscha_pid_'+code);
 const owner=localStorage.getItem('tyscha_pidowner_'+code);
-if(saved&&(!owner||owner===state.uid)&&data.players&&data.players[saved]){state.myPid=saved;state.isMember=true;}
-else{
-const pids=Object.keys(data.players||{});
-if(data.meta.status==='lobby'&&pids.length>=4){toast('Комната заполнена','warn');state.roomCode=null;return;}
+const legacyActive=saved&&(!owner||owner===state.uid)&&data.players&&data.players[saved]&&!data.players[saved].left;
+if((me&&!me.left)||legacyActive){
+// активный игрок — просто возвращаемся в комнату
+state.myPid=(me&&!me.left)?state.uid:saved;
+state.isMember=true;
+}else{
+// не участвуем: входим игроком в лобби (в т.ч. ПОВТОРНО после «Покинуть партию»)
+// или наблюдателем в идущую/завершённую партию
+const activeCount=(data.order||[]).length;
+if(data.meta.status==='lobby'&&activeCount>=4){toast('Комната заполнена','warn');state.roomCode=null;return;}
 state.myPid=state.uid;
 state.isMember=(data.meta.status==='lobby');
 if(!state.isMember&&data.meta.allowSpectators===false){
@@ -151,14 +152,13 @@ localStorage.setItem('tyscha_pid_'+code,state.myPid);
 localStorage.setItem('tyscha_pidowner_'+code,state.uid);
 if(state.isMember){
 const ordLen=(data.order||[]).length;
+const others={...data.players};delete others[state.uid]; // своя старая запись не мешает дедупликации имени
 await update(ref(db,`rooms/${code}`),{
-[`players/${state.myPid}`]:playerObj(uniqueName(getName(),data.players),ordLen),
+[`players/${state.myPid}`]:playerObj(uniqueName(getName(),others),ordLen),
 [`order/${ordLen}`]:state.myPid,
 'meta/lastActive':Date.now()
 });
-}
-else toast('Игра уже идёт — вы наблюдатель','warn');
-}
+}else toast('Игра уже идёт — вы наблюдатель','warn');
 }
 localStorage.setItem('tyscha_last',code);
 setupPresence();listen();history.replaceState(null,'','#'+code);
