@@ -219,3 +219,4 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .scoreTable td.inBarrel{color:var(--bad);font-weight:700}
 /* ---------- подсказки полей ---------- */
 .fieldHint{font-size:11px;color:var(--muted);margin:-8px 0 12px;line-height:1.4}
+.badge.orgBadge{flex:none;letter-spacing:0;padding:2px 7px}
