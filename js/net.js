@@ -197,8 +197,11 @@ if(!s.exists())return;
 const data=s.val();
 const saved=localStorage.getItem('tyscha_pid_'+code);
 const owner=localStorage.getItem('tyscha_pidowner_'+code);
-const iAmIn=data.players&&(data.players[state.uid]||(saved&&(!owner||owner===state.uid)&&data.players[saved]));
-if(iAmIn){joinRoom(code);return;}
+const iAmActive=data.players&&(
+(data.players[state.uid]&&!data.players[state.uid].left)||
+(saved&&(!owner||owner===state.uid)&&data.players[saved]&&!data.players[saved].left)
+);
+if(iAmActive){joinRoom(code);return;}
 if(validCode(hash)){
 const ci=document.getElementById('codeInput');if(ci)ci.value=hash;
 toast(`Комната ${hash} найдена — нажмите «Войти»`,'gold');
