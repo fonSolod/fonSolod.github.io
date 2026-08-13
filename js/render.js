@@ -259,7 +259,8 @@ html+=`<div class="winRow left">
 });
 $('winRows').innerHTML=html;
 const iAmCreator=state.room.meta.createdBy===state.myPid;
-if($('btnNewGame'))$('btnNewGame').hidden=!iAmCreator;
+const canNewGame=iAmCreator&&state.room.order.length>=2;
+if($('btnNewGame'))$('btnNewGame').hidden=!canNewGame;
 if($('btnLobby'))$('btnLobby').hidden=!iAmCreator;
 if($('btnDeleteRoomWin'))$('btnDeleteRoomWin').hidden=!(iAmCreator||state.isAdmin);
 }
