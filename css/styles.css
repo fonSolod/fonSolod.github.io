@@ -225,3 +225,15 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .fieldHint{font-size:11px;color:var(--muted);margin:-8px 0 12px;line-height:1.4}
 .badge.orgBadge{flex:none;letter-spacing:0;padding:2px 7px}
 .pname.turnName{border:1.5px solid var(--gold);border-radius:9px;padding:2px 9px;background:rgba(245,196,81,.14);box-shadow:0 0 10px rgba(245,196,81,.25)}
+/* ---------- комната в списке: защита от переполнения ---------- */
+/* на мобильном складываем кнопки в столбик, чтобы карточка не была шире экрана */
+@media(max-width:560px){
+.rcBtns{flex-direction:column;align-items:stretch;min-width:0;width:100%}
+.rcBtns .btn{width:100%}
+.rcTop{min-width:0}
+.rcCode{font-size:17px;letter-spacing:2px}
+.rcOrg{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+}
+/* страховка: контент не может растянуть колонку списка шире экрана */
+.homeList{min-width:0;overflow:hidden}
+.rcTop *{overflow-wrap:anywhere}
