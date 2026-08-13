@@ -65,7 +65,7 @@ else btnHtml=`<button class="btn ghost rcMain blocked" disabled title="Набл�
 if(iAmCreator||state.isAdmin)btnHtml+=`<button class="btn ghost rcDel" data-act="delroom" data-code="${code}" title="Удалить комнату">🗑</button>`;const c=document.createElement('div');
 c.className='roomCard'+(inactive?' inactive':'');
 c.innerHTML=`<div class="rcTop">
-<div><span class="rcCode">${code}</span><span class="rcOrg">организатор: ${esc(players[m.createdBy]?players[m.createdBy].name:'—')}</span></div>
+<div><span class="rcCode">${code}</span> <span class="rcOrg">${esc(players[m.createdBy]?players[m.createdBy].name:'—')}</span></div>
 <div class="rcChips">${chips.join('')}</div>
 </div>
 <div class="rcBtns">${btnHtml}</div>`;
