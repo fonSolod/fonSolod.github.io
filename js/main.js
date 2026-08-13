@@ -116,6 +116,90 @@ net.createRoom({hidden:$('optHidden').checked,allowSpectators:$('optSpectators')
 $('joinBtn').onclick=()=>{notify.requestNotif();const c=$('codeInput').value.trim().toUpperCase();if(net.validCode(c))net.joinRoom(c);else toast('Введите код из 4 символов','warn');};
 $('roomFilter').oninput=()=>{state.homeFilter=$('roomFilter').value;home.renderHome();};
 
+/* ---------- аккаунт ---------- */
+function openProfile(){
+const p=state.profile||{};
+$('profNick').textContent=p.nick||'—';
+$('profEmail').textContent=p.email||'не привязан';
+$('profName').value=p.name||'';
+const hasEmail=!!p.email;
+$('emailLabel').textContent=hasEmail?'Сменить e-mail':'Привязать e-mail';
+$('saveEmailBtn').textContent=hasEmail?'Сменить e-mail':'Привязать e-mail';
+if($('profNickPass'))$('profNickPass').hidden=hasEmail;
+$('profileModal').hidden=false;
+}
+function closeProfile(){$('profileModal').hidden=true;}
+if($('homeProfileBtn'))$('homeProfileBtn').onclick=openProfile;
+if($('homeWho'))$('homeWho').onclick=openProfile;
+if($('profileClose'))$('profileClose').onclick=closeProfile;
+if($('profileModal'))$('profileModal').onclick=e=>{if(e.target.id==='profileModal')closeProfile();};
+
+$('saveNameBtn').onclick=async()=>{
+const name=$('profName').value.trim();
+if(!name){toast('Имя не может быть пустым','warn');return;}
+try{
+await authM.updateGameName(name);
+state.profile.name=name;
+$('homeWho').textContent='Вы вошли как '+name+(state.isAdmin?' 👑':'');
+if($('accountChip'))$('accountChip').textContent='👤 '+name;
+toast('Имя сохранено','gold');
+}catch(e){toast(authM.authErrorMsg(e),'bad');}
+};
+
+$('savePassBtn').onclick=async()=>{
+const cur=$('profCurPass').value,np=$('profPass').value,np2=$('profPass2').value;
+if(!cur){toast('Введите текущий пароль','warn');return;}
+if(np.length<6){toast('Новый пароль: минимум 6 символов','warn');return;}
+if(np!==np2){toast('Пароли не совпадают','warn');return;}
+try{
+await authM.changePassword(cur,np);
+$('profCurPass').value=$('profPass').value=$('profPass2').value='';
+toast('Пароль изменён','gold');
+}catch(e){toast(authM.authErrorMsg(e),'bad');}
+};
+
+$('saveEmailBtn').onclick=async()=>{
+const em=$('profEmailInput').value.trim();
+const pass=$('profEmailPass').value;
+if(!authM.isEmailLike(em)){toast('Некорректный e-mail','warn');return;}
+if(!pass){toast('Введите пароль для подтверждения','warn');return;}
+try{
+await authM.changeEmail(em,pass);
+state.profile.email=em;
+$('profEmail').textContent=em;
+$('emailLabel').textContent='Сменить e-mail';
+$('saveEmailBtn').textContent='Сменить e-mail';
+if($('profNickPass'))$('profNickPass').hidden=true;
+$('profEmailInput').value='';$('profEmailPass').value='';
+toast('E-mail сохранён','gold');
+}catch(e){toast(authM.authErrorMsg(e),'bad');}
+};
+
+$('saveNickBtn').onclick=async()=>{
+const nn=$('profNickInput').value.trim();
+const pass=$('profNickPass').value;
+if(!nn){toast('Введите новый ник','warn');return;}
+if(!authM.isValidNick(nn)){toast('Ник: 3–16 символов — буквы, цифры, «_» или «-»','warn');return;}
+if(!(state.profile&&state.profile.email)&&!pass){toast('Введите пароль для подтверждения','warn');return;}
+try{
+await authM.changeNick(nn,pass);
+state.profile.nick=nn;
+$('profNick').textContent=nn;
+$('profNickInput').value='';$('profNickPass').value='';
+toast('Ник изменён — вход по новому нику','gold');
+}catch(e){toast(authM.authErrorMsg(e),'bad');}
+};
+
+$('deleteAccountBtn').onclick=async()=>{
+const pass=$('profDelPass').value;
+if(!pass){toast('Введите пароль для подтверждения','warn');return;}
+if(!confirm('Удалить аккаунт навсегда?\n\nПрофиль будет удалён, участие в комнатах останется в истории.'))return;
+try{
+await authM.deleteAccount(pass);
+// выход произойдёт автоматически (watchAuth → экран входа)
+}catch(e){toast(authM.authErrorMsg(e),'bad');}
+};
+
 /* ---------- статические кнопки ---------- */
 $('leaveBtn').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;render.showScreen('home');};
 $('codeChip').onclick=net.copyInvite;
