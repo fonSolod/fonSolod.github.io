@@ -31,6 +31,7 @@
 </div>
 <p class="setupLabel">E-mail или ник</p>
 <input id="authLogin" class="bigInput" placeholder="you@mail.ru или Ник" autocomplete="username">
+<p class="fieldHint">Ник: от 3 до 16 символов (буквы, цифры, «_», «-»). E-mail — без ограничений.</p>
 <p class="setupLabel">Пароль</p>
 <input id="authPass" type="password" class="bigInput" placeholder="Минимум 6 символов" autocomplete="current-password">
 <div id="regExtra" hidden>
@@ -38,6 +39,7 @@
 <input id="authPass2" type="password" class="bigInput" autocomplete="new-password">
 <p class="setupLabel">Имя в игре (необязательно)</p>
 <input id="authName" class="bigInput" maxlength="14" placeholder="Будет видно другим игрокам">
+  <p class="fieldHint">Максимум 14 символов — это имя видят другие игроки.</p>
 </div>
 <p class="authErr" id="authErr" hidden></p>
 <button id="authSubmit" class="btn primary wide">Войти</button>
@@ -101,20 +103,23 @@
 
   <!-- ИГРА -->
   <section id="game" hidden>
-    <div id="topbar">
-      <div class="brand">ТЫЩА · 1000</div>
-      <button class="codeChip" id="codeChip" title="Скопировать ссылку">····</button>
-      <button class="tbtn" id="btnNotify" title="Уведомления о ходе">🔕</button>
-      <div class="topBtns">
-        <span class="accChip" id="accountChip"></span>
-        <button class="tbtn" id="btnLogout" title="Выйти из аккаунта">🔓 Сменить аккаунт</button>
-        <button class="tbtn" id="btnSound">🔊</button>
-        <button class="tbtn" id="btnRules">📖 Правила</button>
-        <button class="tbtn" id="btnLeaveGame">Выйти</button>
-        <button class="tbtn" id="btnLeaveParty" title="Покинуть партию навсегда">⛔ Покинуть</button>
-        <button class="tbtn" id="btnDeleteRoom" title="Удалить комнату">🗑</button>
-      </div>
+<div id="topbar">
+  <div class="brand">ТЫЩА · 1000</div>
+  <button class="codeChip" id="codeChip" title="Скопировать ссылку">····</button>
+  <span class="accChip" id="accountChip"></span>
+  <div class="settingsWrap">
+    <button class="tbtn" id="btnSettings" title="Настройки">⚙️ Настройки</button>
+    <div class="settingsMenu" id="settingsMenu" hidden>
+      <button class="smItem" id="smNotify">🔕 Уведомления</button>
+      <button class="smItem" id="smSound">🔊 Звук</button>
+      <button class="smItem" id="smRules">📖 Правила</button>
+      <button class="smItem" id="smDeleteRoom">🗑 Удалить комнату</button>
+      <button class="smItem" id="smLeaveParty">⛔ Покинуть партию</button>
+      <button class="smItem" id="smLeaveGame">🚪 Выйти в меню</button>
+      <button class="smItem" id="smLogout">👤 Сменить аккаунт</button>
     </div>
+  </div>
+</div>
     <div id="players"></div>
     <div id="trackWrap"><div id="track">
       <div class="trackBar"></div>
@@ -135,7 +140,16 @@
         </div>
         <div id="actions"></div>
       </div>
-      <aside id="log"><h3>Журнал игры</h3><div id="logList"></div></aside>
+      <aside id="sidePanels">
+  <div class="collapsible" id="scorePanel">
+    <button class="collHeader" id="scoreToggle">🧮 Таблица очков <span class="chev">▾</span></button>
+    <div class="collBody" id="scoreTableBody"></div>
+  </div>
+  <div class="collapsible" id="logPanel">
+    <button class="collHeader" id="logToggle">📜 Журнал игры <span class="chev">▾</span></button>
+    <div class="collBody" id="logBody"><div id="logList"></div></div>
+  </div>
+</aside>
     </div>
   </section>
 </div>
