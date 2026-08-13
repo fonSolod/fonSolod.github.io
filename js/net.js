@@ -138,7 +138,7 @@ hidden:!!opts.hidden,allowSpectators:opts.allowSpectators!==false,lastActive:Dat
 order:[state.myPid],
 players:{[state.myPid]:playerObj(name,0)}
 });
-setupPresence();listen();history.replaceState(null,'','#'+code);
+setupPresence();listen();history.replaceState(null,'',location.pathname+location.search);
 }
 
 export async function joinRoom(code){
@@ -176,7 +176,7 @@ await update(ref(db,`rooms/${code}`),{
 }else toast('Игра уже идёт — вы наблюдатель','warn');
 }
 localStorage.setItem('tyscha_last',code);
-setupPresence();listen();history.replaceState(null,'','#'+code);
+setupPresence();listen();history.replaceState(null,'',location.pathname+location.search);
 }
 
 /* ---------- присутствие и подписка на комнату ---------- */
