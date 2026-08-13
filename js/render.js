@@ -41,10 +41,14 @@ $('lobbyHint').textContent=!iAmCreator?'Ожидание организатор�
 /* ---------- игра: общий рендер ---------- */
 export function renderGame(prev){
 $('codeChip').textContent=state.roomCode;
-if(!state.room.game)return;
+const finished=state.room.meta.status==='finished';
+if(!state.room.game){
+if(finished){$('winOverlay').hidden=false;renderWin();}
+return;
+}
 maybeIncomingAnim(prev);
 renderPlayers();renderTrack();renderDice();renderTray();renderTurnInfo();renderActions();renderScoreTable();renderLog();
-if(state.room.meta.status==='finished'){$('winOverlay').hidden=false;renderWin();}
+if(finished){$('winOverlay').hidden=false;renderWin();}
 else $('winOverlay').hidden=true;
 }
 
