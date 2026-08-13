@@ -57,6 +57,7 @@ return true;
 }
 
 // Покинуть партию: выбытие с сохранением счёта, автопобеда при 1 игроке, удаление при 0.
+// Если партию покидает организатор — роль переходит следующему оставшемуся игроку.
 export async function leaveParty(){
 if(!state.room||!state.room.game)return false;
 const m=state.room.meta,g=state.room.game;
@@ -70,6 +71,15 @@ order:newOrder,
 [`players/${state.myPid}/online`]:false
 };
 pushLogIn(upd,`⛔ ${state.room.players[state.myPid].name} покинул партию`,'bad');
+// если уходит организатор — определяем преемника: следующий оставшийся по порядку хода (по циклу)
+let newCreator=null;
+if(m.createdBy===state.myPid&&newOrder.length>0){
+const orgIdx=oldOrder.indexOf(state.myPid);
+for(let k=1;k<=oldOrder.length;k++){
+const cand=oldOrder[(orgIdx+k)%oldOrder.length];
+if(newOrder.includes(cand)){newCreator=cand;break;}
+}
+}
 stopListen(); // отписываемся до записи, чтобы не получить свой же снапшот
 try{
 if(newOrder.length===0){
@@ -81,13 +91,18 @@ return true;
 }
 if(newOrder.length===1){
 const winner=newOrder[0];
-upd.meta={...m,status:'finished',winner};
+upd.meta={...m,status:'finished',winner,createdBy:newCreator||winner};
 upd.game={seq:(g.seq||0)+1,phase:'over',dice:[],tray:[],turnTotal:0,winner};
 pushLogIn(upd,`🏆 ${state.room.players[winner].name} побеждает: все соперники покинули партию`,'win');
 await update(ref(db,`rooms/${state.roomCode}`),upd);
 toast('Партия завершена','gold');
 state.roomCode=null;state.room=null;
 return true;
+}
+// партия продолжается (2+ игроков)
+if(newCreator){
+upd.meta={...m,createdBy:newCreator};
+pushLogIn(upd,`👑 ${state.room.players[newCreator].name} становится организатором`,'turn');
 }
 // обычный выход: если был мой ход — передаём следующему активному
 if(g.current===state.myPid){
