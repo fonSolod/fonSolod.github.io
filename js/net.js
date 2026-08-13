@@ -80,10 +80,9 @@ state.roomCode=null;state.room=null;
 return true;
 }
 if(newOrder.length===1){
-// остался один — автопобеда
 const winner=newOrder[0];
 upd.meta={...m,status:'finished',winner};
-upd.game=null;
+upd.game={seq:(g.seq||0)+1,phase:'over',dice:[],tray:[],turnTotal:0,winner};
 pushLogIn(upd,`🏆 ${state.room.players[winner].name} побеждает: все соперники покинули партию`,'win');
 await update(ref(db,`rooms/${state.roomCode}`),upd);
 toast('Партия завершена','gold');
