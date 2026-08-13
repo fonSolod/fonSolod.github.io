@@ -1,7 +1,7 @@
 // js/actions.js — игровые действия: бросок, банк, передача хода, встряхивание.
 import {state,ui,isMyTurn} from './state.js';
 import {rndFace,calcScore,scoringFlags,TARGET,SAMOSVAL,ZERO_STREAK,getBarrel} from './rules.js';
-import {baseWait,pushLogIn,pushScore,applyDot,applyBarrelTick,applySamosvalAll,clearBarrelState,crossLast,projHist,lastValidIndex,canBank} from './ledger.js';
+import {baseWait,pushLogIn,pushScore,applyDot,applyBarrelTick,applySamosvalAll,applySamosvalTo,clearBarrelState,crossLast,projHist,lastValidIndex,canBank} from './ledger.js';
 import {writeRoom} from './net.js';
 import {buildDieEl,setFaceEl} from './render.js';
 import {playRollSound} from './sound.js';
@@ -48,7 +48,7 @@ pushLogIn(upd,`⚡ Нулевой ход у ${p.name}! Очки хода (${g.tu
 }else{
 pushLogIn(upd,`⚡ Нулевой ход у ${p.name}! Очки хода (${g.turnTotal}) сгорают. До входа в игру нулевые ходы не считаются.`,'bad');
 }
-upd.game={...baseWait(g),dice:diceObjs,busted:true};
+upd.game={...baseWait(g),dice:diceObjs,busted:true,waitMs:3500};
 applyBarrelTick(upd,state.myPid,entryLeft);
 applySamosvalAll(upd);
 }else{
@@ -65,20 +65,17 @@ upd[`players/${state.myPid}/opened`]=true;
 upd[`players/${state.myPid}/zeroStreak`]=0;
 upd.meta={...state.room.meta,status:'finished',winner:state.myPid};
 upd.game={...g,seq:g.seq+1,phase:'over',dice:[],tray:newTray,turnTotal:newTurnTotal};
-pushLogIn(upd,`🏆 ${p.name} набирает ровно 1000 и ПОБЕЖДАЕТ!`,'win');
+pushLogIn(upd,`🏆 ${p.name} набирает ровно 1000 очков и ПОБЕЖДАЕТ!`,'win');
 }else if(pot>TARGET){
 const r=applyDot(upd,state.myPid,`${p.name}: перебор ${pot} вместо 1000.`);
 pushLogIn(upd,r.msg+' Ход не засчитывается.','dot');
-upd.game={...baseWait(g),tray:newTray};
+upd.game={...baseWait(g),tray:newTray,waitMs:3500};
 applyBarrelTick(upd,state.myPid,r.cutToBarrel?1:2);
 applySamosvalAll(upd);
 }else if(pot===SAMOSVAL){
-pushScore(upd,state.myPid,0);
-upd[`players/${state.myPid}/opened`]=true;
-upd[`players/${state.myPid}/zeroStreak`]=0;
-clearBarrelState(upd,state.myPid);
+applySamosvalTo(upd,state.myPid);
 pushLogIn(upd,`🚛 Самосвал! ${p.name} набирает 555 — все очки списываются.`,'dump');
-upd.game={...baseWait(g),tray:newTray};
+upd.game={...baseWait(g),tray:newTray,waitMs:5000};
 }else{
 const remain=faces.filter((f,i)=>!flags[i]);
 if(remain.length===0){
@@ -91,7 +88,7 @@ upd.game={...g,seq:g.seq+1,dice:remain.map(f=>({face:f,sel:false,scoring:false})
 writeRoom(upd).catch(e=>toast('Ошибка сети','bad')).finally(()=>{state.animLock=false;});
 }
 
-/* ---------- банк (хватить) ---------- */
+/* ---------- банк (хватит) ---------- */
 export function bank(){
 if(!isMyTurn()||state.room.game.phase!=='choose')return;
 const chk=canBank();if(!chk.ok){toast(chk.why,'warn');return;}
@@ -101,7 +98,7 @@ const r=applyDot(upd,state.myPid,`${p.name}: перебор ${ns} вместо 1
 pushLogIn(upd,r.msg+' Ход не засчитывается.','dot');
 applyBarrelTick(upd,state.myPid,r.cutToBarrel?1:2);
 applySamosvalAll(upd);
-upd.game=baseWait(g);
+upd.game={...baseWait(g),waitMs:3500};
 writeRoom(upd);return;
 }
 pushScore(upd,state.myPid,ns);
@@ -111,10 +108,9 @@ pushLogIn(upd,`💰 ${p.name} записывает ${g.turnTotal} ${ptsWord(g.tu
 if(ns===TARGET){
 upd.meta={...state.room.meta,status:'finished',winner:state.myPid};
 upd.game={...g,seq:g.seq+1,phase:'over'};
-pushLogIn(upd,`🏆 ${p.name} набирает ровно 1000 и ПОБЕЖДАЕТ!`,'win');
+pushLogIn(upd,`🏆 ${p.name} набирает ровно 1000 очков и ПОБЕЖДАЕТ!`,'win');
 writeRoom(upd);return;
 }
-// обгон: обогнанный срезается до СВОЕГО прошлого значения; равный счёт тоже обгон
 state.room.order.forEach(pid=>{
 if(pid===state.myPid)return;
 const o=state.room.players[pid];
@@ -154,7 +150,8 @@ writeRoom(upd);
 export function scheduleAutoAdvance(){
 clearTimeout(state.advTimer);
 if(state.room&&state.room.game&&state.room.game.phase==='wait'&&state.room.game.current===state.myPid){
-state.advTimer=setTimeout(()=>{if(state.room&&state.room.game&&state.room.game.phase==='wait')advanceTurn();},2200);
+const delay=state.room.game.waitMs||2200;
+state.advTimer=setTimeout(()=>{if(state.room&&state.room.game&&state.room.game.phase==='wait')advanceTurn();},delay);
 }
 }
 
