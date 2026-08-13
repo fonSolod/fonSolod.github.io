@@ -225,19 +225,4 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .fieldHint{font-size:11px;color:var(--muted);margin:-8px 0 12px;line-height:1.4}
 .badge.orgBadge{flex:none;letter-spacing:0;padding:2px 7px}
 .pname.turnName{border:1.5px solid var(--gold);border-radius:9px;padding:2px 9px;background:rgba(245,196,81,.14);box-shadow:0 0 10px rgba(245,196,81,.25)}
-/* адаптация главной страницы под мобильный */
-@media(max-width:900px){
-.homeWrap{grid-template-columns:1fr}
-.homePanel,.homeList{max-width:100%}
-}
-@media(max-width:560px){
-.panel{padding:20px 16px}
-.homePanel{padding:20px 14px}
-.rcTop{min-width:0;max-width:100%}
-.rcCode{font-size:17px;letter-spacing:2px}
-.rcOrg{display:inline-block;max-width:calc(100% - 90px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
-.rcChips{margin-top:4px}
-.rcBtns{min-width:0;width:100%}
-.rcBtns .btn{width:100%;padding:12px 16px}
-#roomFilter{padding:11px 12px;font-size:14px}
-}
+
