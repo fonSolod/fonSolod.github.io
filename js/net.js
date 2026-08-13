@@ -58,6 +58,8 @@ return true;
 
 // Покинуть партию: выбытие с сохранением счёта, автопобеда при 1 игроке, удаление при 0.
 // Если партию покидает организатор — роль переходит следующему оставшемуся игроку.
+// Покинуть партию: выбытие с сохранением счёта, автопобеда при 1 игроке, удаление при 0.
+// Если партию покидает организатор — роль переходит следующему оставшемуся игроку.
 export async function leaveParty(){
 if(!state.room||!state.room.game)return false;
 const m=state.room.meta,g=state.room.game;
@@ -71,7 +73,7 @@ order:newOrder,
 [`players/${state.myPid}/online`]:false
 };
 pushLogIn(upd,`⛔ ${state.room.players[state.myPid].name} покинул партию`,'bad');
-// если уходит организатор — определяем преемника: следующий оставшийся по порядку хода (по циклу)
+// если уходит организатор — преемник: следующий оставшийся по порядку хода (по циклу)
 let newCreator=null;
 if(m.createdBy===state.myPid&&newOrder.length>0){
 const orgIdx=oldOrder.indexOf(state.myPid);
@@ -79,6 +81,7 @@ for(let k=1;k<=oldOrder.length;k++){
 const cand=oldOrder[(orgIdx+k)%oldOrder.length];
 if(newOrder.includes(cand)){newCreator=cand;break;}
 }
+if(newCreator)pushLogIn(upd,`👑 ${state.room.players[newCreator].name} становится организатором`,'turn');
 }
 stopListen(); // отписываемся до записи, чтобы не получить свой же снапшот
 try{
@@ -100,10 +103,7 @@ state.roomCode=null;state.room=null;
 return true;
 }
 // партия продолжается (2+ игроков)
-if(newCreator){
-upd.meta={...m,createdBy:newCreator};
-pushLogIn(upd,`👑 ${state.room.players[newCreator].name} становится организатором`,'turn');
-}
+if(newCreator)upd.meta={...m,createdBy:newCreator};
 // обычный выход: если был мой ход — передаём следующему активному
 if(g.current===state.myPid){
 const oldIdx=oldOrder.indexOf(state.myPid);
