@@ -79,9 +79,8 @@ if(p.dots)chips.push(`<span class="chip dot">🎯 точки: ${p.dots}/${DOT_LI
 if(p.bolts)chips.push(`<span class="chip bolt">🔩 болты: ${p.bolts}/${BOLT_LIMIT}</span>`);
 if(!chips.length)chips.push('<span class="chip">в игре</span>');
 const isOrg=pid===state.room.meta.createdBy;
-c.innerHTML=`<div class="phead"><span class="pdot"></span><span class="pname">${esc(p.name)}</span>
+c.innerHTML=`<div class="phead"><span class="pdot"></span><span class="pname${act?' turnName':''}">${esc(p.name)}</span>
 ${isOrg?'<span class="badge orgBadge" title="Организатор комнаты">👑</span>':''}
-${act?'<span class="go">ходит</span>':''}
 <span class="odot" style="background:${p.online?'#7de3a1':'#5a6f64'}"></span></div>
 <div class="pscore">${p.score} ${potHtml}</div><div class="chips">${chips.join('')}</div>`;
 box.appendChild(c);
