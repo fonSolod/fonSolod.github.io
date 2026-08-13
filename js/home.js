@@ -12,7 +12,7 @@ wrap.innerHTML='';
 const rooms=Object.entries(state.homeRooms||{}).map(([code,r])=>({code,r})).filter(x=>x.r&&x.r.meta);
 const filt=(state.homeFilter||'').trim().toUpperCase();
 const now=Date.now();
-const mine=x=>!!(x.r.players&&x.r.players[state.uid]);
+const mine=x=>!!(x.r.players&&x.r.players[state.uid]&&!x.r.players[state.uid].left);
 const isActive=x=>(x.r.meta.lastActive||0)>now-DAY;
 const visible=rooms.filter(x=>{
 if(filt&&!x.code.includes(filt))return false;
