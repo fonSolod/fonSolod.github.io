@@ -2,7 +2,7 @@
 // помечаются data-act и обрабатываются делегированием в main.js.
 import {state,isMyTurn} from './state.js';
 import {PC,PIPS,TARGET,OPEN_MIN,DOT_LIMIT,BOLT_LIMIT,ZERO_STREAK,getBarrel,calcScore} from './rules.js';
-import {$,esc,ptsWord,kubWord,hodWord,isTouch,toast} from './util.js';
+import {$,esc,ptsWord,kubWord,hodWord,isTouch,toast,BOT_LEVELS} from './util.js';
 import {playRollSound} from './sound.js';
 import {canBank} from './ledger.js';
 
@@ -24,21 +24,30 @@ else{renderGame(prev);showScreen('game');}
 /* ---------- лобби ---------- */
 export function renderLobby(){
 $('lobbyCode').textContent=state.roomCode;
+const iAmCreator=state.room.meta.createdBy===state.myPid;
 const box=$('lobbyPlayers');box.innerHTML='';
 state.room.order.forEach(pid=>{
 const p=state.room.players[pid];if(!p)return;
 const r=document.createElement('div');r.className='playerRow';
-r.innerHTML=`<span class="pdotBig" style="background:${PC[p.seat]};color:${PC[p.seat]}"></span> <b>${esc(p.name)}</b>${pid===state.room.meta.createdBy?'<span class="badge">организатор</span>':''} <span class="onlineDot" style="background:${p.online?'#7de3a1':'#5a6f64'};box-shadow:0 0 8px ${p.online?'#7de3a1':'none'}"></span>`;
+let badges='';
+if(p.isBot)badges+=`<span class="badge botBadge">🤖 ${BOT_LEVELS[p.botLevel]||'бот'}</span>`;
+else if(pid===state.room.meta.createdBy)badges+='<span class="badge">организатор</span>';
+const del=p.isBot&&iAmCreator?`<button class="botDel" data-act="delbot" data-pid="${pid}" title="Удалить бота">✕</button>`:'';
+r.innerHTML=`<span class="pdotBig" style="background:${PC[p.seat]};color:${PC[p.seat]}"></span> <b>${esc(p.name)}</b>${badges} <span class="onlineDot" style="background:${p.online?'#7de3a1':'#5a6f64'};box-shadow:0 0 8px ${p.online?'#7de3a1':'none'}"></span>${del}`;
 box.appendChild(r);
 });
 $('lobbyCount').textContent=state.room.order.length;
-const iAmCreator=state.room.meta.createdBy===state.myPid;
+if($('botPanel'))$('botPanel').hidden=!iAmCreator;
+if($('addBotBtn')){
+$('addBotBtn').disabled=state.room.order.length>=4;
+$('addBotBtn').style.opacity=$('addBotBtn').disabled?.5:1;
+}
 const canDelete=iAmCreator||state.isAdmin;
 if($('lobbyDeleteBtn'))$('lobbyDeleteBtn').hidden=!canDelete;
 const b=$('startGameBtn');
 b.disabled=!iAmCreator||state.room.order.length<2;
 b.style.opacity=b.disabled?.5:1;
-$('lobbyHint').textContent=!iAmCreator?'Ожидание организатора…':(state.room.order.length<2?'Нужно минимум 2 игрока — поделитесь кодом':'Всё готово!');
+$('lobbyHint').textContent=!iAmCreator?'Ожидание организатора…':(state.room.order.length<2?'Нужно минимум 2 игрока — добавьте бота или поделитесь кодом':'Всё готово!');
 }
 
 /* ---------- игра: общий рендер ---------- */
@@ -75,6 +84,7 @@ potHtml=`<span class="${pcls}" title="Счёт + взято за ход">→ ${p
 }
 const chips=[];
 if(p.left){chips.push('<span class="chip left">⛔ выбыл</span>');}
+if(p.isBot){chips.push(`<span class="chip bot">🤖 ${BOT_LEVELS[p.botLevel]||'бот'}</span>`);}
 if(!p.opened)chips.push('<span class="chip lock">🔒 вход ≥50</span>');
 if(p.inBarrel!=null)chips.push(`<span class="chip barrel">🛢 бочка ${p.inBarrel}–${p.inBarrel+100} · ${p.barrelLeft!=null?hodWord(p.barrelLeft):''}</span>`);
 if(p.zeroStreak)chips.push(`<span class="chip zero">⚡ нулевых подряд: ${p.zeroStreak}/${ZERO_STREAK}</span>`);
@@ -234,6 +244,11 @@ const A=$('actions');A.innerHTML='';
 const g=state.room.game,p=state.room.players[g.current];
 if(state.room.meta.status==='finished')return;
 if(g.phase==='wait'){
+if(p&&p.isBot){
+const h=document.createElement('div');h.className='pickHint';
+h.textContent='🤖 Бот играет…';
+A.appendChild(h);return;
+}
 A.appendChild(btn('primary','Следующий игрок ➤','advance'));
 const h=document.createElement('div');h.className='pickHint';
 h.textContent=isMyTurn()?'Ход передастся автоматически…':'Ход передастся автоматически, либо нажмите кнопку';
@@ -241,7 +256,7 @@ A.appendChild(h);return;
 }
 if(!isMyTurn()){
 const w=document.createElement('div');w.className='waitNote';
-w.textContent=p&&p.online?`Ждём хода ${p.name}…`:`⚠ ${p?p.name:'Игрок'} не в сети`;
+w.textContent=p&&p.isBot?`🤖 ${p.name} думает…`:(p&&p.online?`Ждём хода ${p.name}…`:`⚠ ${p?p.name:'Игрок'} не в сети`);
 A.appendChild(w);
 return;
 }
