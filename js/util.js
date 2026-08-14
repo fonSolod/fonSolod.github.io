@@ -13,3 +13,4 @@ return name+' '+i;
 }
 let toastTimer=null;
 export function toast(t,k){const el=$('toast');el.textContent=t;el.className='show '+(k||'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.className='',2400);}
+export const BOT_LEVELS={easy:'лёгкий',mid:'средний',hard:'сложный'};
