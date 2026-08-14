@@ -9,6 +9,7 @@ import * as notify from './notify.js';
 import * as authM from './auth.js';
 import * as home from './home.js';
 import * as sound from './sound.js';
+import * as bot from './bot.js';
 
 ui.onSnapshot=(prev)=>{
 try{notify.handleTurnChange(prev);}catch(e){console.error('onSnapshot/handleTurnChange:',e);}
@@ -16,6 +17,7 @@ try{render.checkToast();}catch(e){console.error('onSnapshot/checkToast:',e);}
 try{render.renderScreen(prev);}catch(e){console.error('onSnapshot/renderScreen:',e);}
 try{actions.scheduleAutoAdvance();}catch(e){console.error('onSnapshot/scheduleAutoAdvance:',e);}
 try{updateSettingsMenu();}catch(e){console.error('onSnapshot/updateSettingsMenu:',e);}
+try{bot.maybeDriveBot();}catch(e){console.error('onSnapshot/maybeDriveBot:',e);}
 };
 ui.renderActions=render.renderActions;
 ui.renderHome=home.renderHome;
@@ -133,7 +135,6 @@ if($('homeProfileBtn'))$('homeProfileBtn').onclick=openProfile;
 if($('homeWho'))$('homeWho').onclick=openProfile;
 if($('profileClose'))$('profileClose').onclick=closeProfile;
 if($('profileModal'))$('profileModal').onclick=e=>{if(e.target.id==='profileModal')closeProfile();};
-
 $('saveNameBtn').onclick=async()=>{
 const name=$('profName').value.trim();
 if(!name){toast('Имя не может быть пустым','warn');return;}
@@ -145,7 +146,6 @@ if($('accountChip'))$('accountChip').textContent='👤 '+name;
 toast('Имя сохранено','gold');
 }catch(e){toast(authM.authErrorMsg(e),'bad');}
 };
-
 $('savePassBtn').onclick=async()=>{
 const cur=$('profCurPass').value,np=$('profPass').value,np2=$('profPass2').value;
 if(!cur){toast('Введите текущий пароль','warn');return;}
@@ -157,7 +157,6 @@ $('profCurPass').value=$('profPass').value=$('profPass2').value='';
 toast('Пароль изменён','gold');
 }catch(e){toast(authM.authErrorMsg(e),'bad');}
 };
-
 $('saveEmailBtn').onclick=async()=>{
 const em=$('profEmailInput').value.trim();
 const pass=$('profEmailPass').value;
@@ -174,7 +173,6 @@ $('profEmailInput').value='';$('profEmailPass').value='';
 toast('E-mail сохранён','gold');
 }catch(e){toast(authM.authErrorMsg(e),'bad');}
 };
-
 $('saveNickBtn').onclick=async()=>{
 const nn=$('profNickInput').value.trim();
 const pass=$('profNickPass').value;
@@ -189,7 +187,6 @@ $('profNickInput').value='';$('profNickPass').value='';
 toast('Ник изменён — вход по новому нику','gold');
 }catch(e){toast(authM.authErrorMsg(e),'bad');}
 };
-
 $('deleteAccountBtn').onclick=async()=>{
 const pass=$('profDelPass').value;
 if(!pass){toast('Введите пароль для подтверждения','warn');return;}
@@ -212,6 +209,7 @@ $('lobbyDeleteBtn').onclick=async()=>{if(await net.deleteCurrentRoom())render.sh
 $('btnNewGame').onclick=()=>actions.newGameSamePlayers();
 $('btnDeleteRoomWin').onclick=async()=>{if(await net.deleteCurrentRoom())render.showScreen('home');};
 $('btnHomeFromWin').onclick=()=>{net.stopListen();state.roomCode=null;state.room=null;$('winOverlay').hidden=true;render.showScreen('home');};
+$('addBotBtn').onclick=()=>net.addBot($('botLevel').value);
 
 /* ---------- меню настроек ---------- */
 if($('btnSettings')){
@@ -242,11 +240,11 @@ t.onclick=()=>p.classList.toggle('closed');
 wireCollapsible('scoreToggle','scorePanel');
 wireCollapsible('logToggle','logPanel');
 
-
 /* ---------- делегирование динамических кнопок ---------- */
 const actMap={roll:actions.doRoll,bank:actions.bank,advance:actions.advanceTurn,
 enter:(el)=>net.joinRoom(el.dataset.code),
-delroom:(el)=>net.deleteRoom(el.dataset.code)};
+delroom:(el)=>net.deleteRoom(el.dataset.code),
+delbot:(el)=>net.removeBot(el.dataset.pid)};
 document.addEventListener('click',e=>{
 const el=e.target.closest('[data-act]');
 if(!el)return;
