@@ -1,10 +1,11 @@
-// js/net.js — комнаты: создание, вход, присутствие, подписки, список комнат.
+// js/net.js — комнаты: создание, вход, присутствие, подписки, список комнат, боты.
 import {db,ref,update,set,get,remove,onValue,onDisconnect,configured} from './config.js';
 import {state,ui} from './state.js';
 import {toast,uniqueName} from './util.js';
 import {playerObj,pushLogIn} from './ledger.js';
 
 export const R=p=>ref(db,`rooms/${state.roomCode}${p?'/'+p:''}`);
+
 // Запись в комнату + автоматическое обновление lastActive (для метки «неактивна»)
 export function writeRoom(upd){
 if(upd.meta&&typeof upd.meta==='object')upd.meta={...upd.meta,lastActive:Date.now()};
@@ -15,7 +16,6 @@ return update(ref(db,`rooms/${state.roomCode}`),upd);
 const genCode=()=>{const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s;};
 export const validCode=c=>/^[A-Z2-9]{4}$/.test(c||'');
 export function getName(){return (state.profile&&state.profile.name)||'Игрок';}
-
 export function copyInvite(){
 const link=location.href.split('#')[0]+'#'+state.roomCode;
 (navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(()=>toast('Ссылка скопирована','gold')).catch(()=>toast(link));
@@ -32,7 +32,6 @@ state.homeRooms=snap.val()||{};
 if(ui.renderHome)ui.renderHome();
 });
 }
-
 export async function deleteRoom(code){
 const r=(state.homeRooms||{})[code];
 const iAmCreator=r&&r.meta&&r.meta.createdBy===state.uid;
@@ -41,7 +40,6 @@ if(!confirm('Удалить комнату '+code+'? Все данные пар�
 try{await remove(ref(db,`rooms/${code}`));toast('Комната удалена','gold');}
 catch(e){toast('Не удалось удалить комнату','bad');}
 }
-
 export async function deleteCurrentRoom(){
 const m=state.room&&state.room.meta;
 const iAmCreator=m&&m.createdBy===state.uid;
@@ -57,9 +55,8 @@ return true;
 }
 
 // Покинуть партию: выбытие с сохранением счёта, автопобеда при 1 игроке, удаление при 0.
-// Если партию покидает организатор — роль переходит следующему оставшемуся игроку.
-// Покинуть партию: выбытие с сохранением счёта, автопобеда при 1 игроке, удаление при 0.
-// Если партию покидает организатор — роль переходит следующему оставшемуся игроку.
+// Если партию покидает организатор — роль переходит следующему оставшемуся игроку
+// (предпочтительно человеку: боты игру не ведут).
 export async function leaveParty(){
 if(!state.room||!state.room.game)return false;
 const m=state.room.meta,g=state.room.game;
@@ -73,14 +70,15 @@ order:newOrder,
 [`players/${state.myPid}/online`]:false
 };
 pushLogIn(upd,`⛔ ${state.room.players[state.myPid].name} покинул партию`,'bad');
-// если уходит организатор — преемник: следующий оставшийся по порядку хода (по циклу)
+// если уходит организатор — передаём роль (предпочитая человека: боты игру не ведут)
 let newCreator=null;
 if(m.createdBy===state.myPid&&newOrder.length>0){
 const orgIdx=oldOrder.indexOf(state.myPid);
 for(let k=1;k<=oldOrder.length;k++){
 const cand=oldOrder[(orgIdx+k)%oldOrder.length];
-if(newOrder.includes(cand)){newCreator=cand;break;}
+if(newOrder.includes(cand)&&!(state.room.players[cand]||{}).isBot){newCreator=cand;break;}
 }
+if(!newCreator)newCreator=newOrder[0];
 if(newCreator)pushLogIn(upd,`👑 ${state.room.players[newCreator].name} становится организатором`,'turn');
 }
 stopListen(); // отписываемся до записи, чтобы не получить свой же снапшот
@@ -124,6 +122,34 @@ return true;
 }catch(e){toast('Не удалось покинуть партию','bad');return false;}
 }
 
+/* ---------- боты ---------- */
+export async function addBot(level){
+if(!state.room||state.room.meta.status!=='lobby')return;
+if(state.room.meta.createdBy!==state.myPid&&!state.isAdmin)return;
+if((state.room.order||[]).length>=4){toast('Комната заполнена','warn');return;}
+const lvl=['easy','mid','hard'].includes(level)?level:'mid';
+const pid='bot_'+Math.random().toString(36).slice(2,10);
+const ordLen=state.room.order.length;
+const bot=playerObj(uniqueName('Бот 🤖',state.room.players),ordLen);
+bot.isBot=true;bot.botLevel=lvl;bot.online=true;
+await update(ref(db,`rooms/${state.roomCode}`),{
+[`players/${pid}`]:bot,
+[`order/${ordLen}`]:pid,
+'meta/lastActive':Date.now()
+});
+}
+export async function removeBot(pid){
+if(!state.room||state.room.meta.status!=='lobby')return;
+if(state.room.meta.createdBy!==state.myPid&&!state.isAdmin)return;
+const p=state.room.players[pid];
+if(!p||!p.isBot)return;
+await update(ref(db,`rooms/${state.roomCode}`),{
+[`players/${pid}`]:null,
+order:state.room.order.filter(x=>x!==pid),
+'meta/lastActive':Date.now()
+});
+}
+
 /* ---------- создание и вход ---------- */
 export async function createRoom(opts={}){
 const name=getName();let code=genCode();
@@ -140,7 +166,6 @@ players:{[state.myPid]:playerObj(name,0)}
 });
 setupPresence();listen();history.replaceState(null,'',location.pathname+location.search);
 }
-
 export async function joinRoom(code){
 const s=await get(ref(db,`rooms/${code}`));
 if(!s.exists()){toast('Комната не найдена','warn');return;}
