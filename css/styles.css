@@ -236,3 +236,8 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .profRow input{flex:1;margin-bottom:0}
 #homeWho{cursor:pointer;transition:.15s}
 #homeWho:hover{color:var(--gold2)}
+/* боты */
+.chip.bot{color:#9fd8ff;border-color:rgba(143,216,255,.4)}
+.badge.botBadge{background:#2b6c8f;color:#dff2ff}
+.botDel{margin-left:auto;background:rgba(255,122,107,.12);border:1px solid rgba(255,122,107,.4);color:var(--bad);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;flex:none}
+select.bigInput{cursor:pointer}
