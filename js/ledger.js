@@ -4,7 +4,7 @@ import {getBarrel,SAMOSVAL,DOT_LIMIT,BOLT_LIMIT,OPEN_MIN} from './rules.js';
 import {ptsWord} from './util.js';
 export const projOf=(upd,pid,k)=>(`players/${pid}/${k}` in upd)?upd[`players/${pid}/${k}`]:state.room.players[pid][k];
 export function pushLogIn(upd,t,k){upd[`log/l${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`]={t,k,ts:Date.now()};}
-export function baseWait(g){return{seq:g.seq+1,current:state.myPid,phase:'wait',dice:[],tray:g.tray||[],turnTotal:0,startScore:g.startScore,hot:false,busted:false,waitTs:Date.now()};}
+export function baseWait(g,pid){return{seq:g.seq+1,current:pid||state.myPid,phase:'wait',dice:[],tray:g.tray||[],turnTotal:0,startScore:g.startScore,hot:false,busted:false,waitTs:Date.now()};}
 export function canBank(){
 const p=state.room.players[state.room.game.current],g=state.room.game;
 if(g.turnTotal<5)return{ok:false,why:'Сначала возьмите очки'};
