@@ -1,12 +1,11 @@
 // js/bot.js — драйвер ходов ботов. Работает на устройстве организатора:
-// когда очередь хода у бота, драйвер бросает кубики, решает «хватит/переброс»
-// и передаёт ход. Быстрый темп, блокировка от двойного запуска.
+// когда очередь хода у бота, бросает кубики, решает «хватит/переброс» и передаёт ход.
 import {state} from './state.js';
 import {rndFace,getBarrel,TARGET} from './rules.js';
 import {canBank} from './ledger.js';
 import {applyRoll,applyBank,advanceTurn} from './actions.js';
 
-const BOT_DELAY=700; // мс на «раздумье»
+const BOT_DELAY=700; // мс на «раздумье» (быстрый темп)
 let botTimer=null,botKey='';
 
 // Вызывается на каждый снапшот (из ui.onSnapshot в main.js)
@@ -49,7 +48,7 @@ const T=g.turnTotal;
 if(!canBank().ok)return false; // нельзя банк — перебрасываем
 const lvl=p.botLevel||'mid';
 const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-// порог «хватит» зависит от уровня и слегка случайен
+// порог «хватит» зависит от уровня и слегка случайный
 const thr=lvl==='easy'?R(20,45):lvl==='hard'?R(80,120):R(55,85);
 const pot=p.score+T;
 // банк приведёт в бочку — умные боты перебрасывают, чтобы перепрыгнуть
