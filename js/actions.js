@@ -1,4 +1,5 @@
 // js/actions.js — игровые действия: бросок, банк, передача хода, встряхивание.
+// Ядра ходов (buildFinishRoll/buildBank) параметризованы по pid — их использует и бот.
 import {state,ui,isMyTurn} from './state.js';
 import {rndFace,calcScore,scoringFlags,TARGET,SAMOSVAL,ZERO_STREAK,getBarrel} from './rules.js';
 import {baseWait,pushLogIn,pushScore,applyDot,applyBarrelTick,applySamosvalAll,applySamosvalTo,clearBarrelState,crossLast,projHist,lastValidIndex,canBank} from './ledger.js';
@@ -27,8 +28,9 @@ setTimeout(()=>finishRoll(faces),260);
 },760);
 }
 
-function finishRoll(faces){
-const g=state.room.game,p=state.room.players[state.myPid];
+// Ядро броска — строит обновление для ЛЮБОГО игрока (человек или бот)
+function buildFinishRoll(faces,pid){
+const g=state.room.game,p=state.room.players[pid];
 const pts=calcScore(faces);
 const diceObjs=faces.map(f=>({face:f,sel:false,scoring:false}));
 const upd={};
@@ -36,11 +38,11 @@ if(pts===0){
 let entryLeft=2;
 if(p.opened){
 const streak=(p.zeroStreak||0)+1;
-upd[`players/${state.myPid}/zeroStreak`]=streak;
+upd[`players/${pid}/zeroStreak`]=streak;
 if(streak>=ZERO_STREAK){
-upd[`players/${state.myPid}/zeroStreak`]=0;
-const r=applyDot(upd,state.myPid,`${p.name}: три нулевых хода подряд!`);
-pushLogIn(upd,r.msg+` Очки хода (${g.turnTotal}) сгорают.`,'dot');
+upd[`players/${pid}/zeroStreak`]=0;
+const r=applyDot(upd,pid,`${p.name}: три нулевых хода подряд!`);
+pushLogIn(upd,r.msg+`Очки хода (${g.turnTotal}) сгорают.`,'dot');
 entryLeft=r.cutToBarrel?1:2;
 }else{
 pushLogIn(upd,`⚡ Нулевой ход у ${p.name}! Очки хода (${g.turnTotal}) сгорают. Нулевых ходов подряд: ${streak}/${ZERO_STREAK}.`,'bad');
@@ -48,8 +50,8 @@ pushLogIn(upd,`⚡ Нулевой ход у ${p.name}! Очки хода (${g.tu
 }else{
 pushLogIn(upd,`⚡ Нулевой ход у ${p.name}! Очки хода (${g.turnTotal}) сгорают. До входа в игру нулевые ходы не считаются.`,'bad');
 }
-upd.game={...baseWait(g),dice:diceObjs,busted:true,waitMs:3500};
-applyBarrelTick(upd,state.myPid,entryLeft);
+upd.game={...baseWait(g,pid),dice:diceObjs,busted:true,waitMs:3500};
+applyBarrelTick(upd,pid,entryLeft);
 applySamosvalAll(upd);
 }else{
 const flags=scoringFlags(faces);
@@ -60,22 +62,22 @@ const newTray=[...(g.tray||[]),takenF];
 const pot=p.score+newTurnTotal;
 pushLogIn(upd,`${p.name} бросает [${faces.join(' ')}] → ${pts} ${ptsWord(pts)} (за ход ${newTurnTotal})`,'take');
 if(pot===TARGET){
-pushScore(upd,state.myPid,TARGET);
-upd[`players/${state.myPid}/opened`]=true;
-upd[`players/${state.myPid}/zeroStreak`]=0;
-upd.meta={...state.room.meta,status:'finished',winner:state.myPid};
+pushScore(upd,pid,TARGET);
+upd[`players/${pid}/opened`]=true;
+upd[`players/${pid}/zeroStreak`]=0;
+upd.meta={...state.room.meta,status:'finished',winner:pid};
 upd.game={...g,seq:g.seq+1,phase:'over',dice:[],tray:newTray,turnTotal:newTurnTotal};
 pushLogIn(upd,`🏆 ${p.name} набирает ровно 1000 очков и ПОБЕЖДАЕТ!`,'win');
 }else if(pot>TARGET){
-const r=applyDot(upd,state.myPid,`${p.name}: перебор ${pot} вместо 1000.`);
+const r=applyDot(upd,pid,`${p.name}: перебор ${pot} вместо 1000.`);
 pushLogIn(upd,r.msg+' Ход не засчитывается.','dot');
-upd.game={...baseWait(g),tray:newTray,waitMs:3500};
-applyBarrelTick(upd,state.myPid,r.cutToBarrel?1:2);
+upd.game={...baseWait(g,pid),tray:newTray,waitMs:3500};
+applyBarrelTick(upd,pid,r.cutToBarrel?1:2);
 applySamosvalAll(upd);
 }else if(pot===SAMOSVAL){
-applySamosvalTo(upd,state.myPid);
+applySamosvalTo(upd,pid);
 pushLogIn(upd,`🚛 Самосвал! ${p.name} набирает 555 — все очки списываются.`,'dump');
-upd.game={...baseWait(g),tray:newTray,waitMs:5000};
+upd.game={...baseWait(g,pid),tray:newTray,waitMs:5000};
 }else{
 const remain=faces.filter((f,i)=>!flags[i]);
 if(remain.length===0){
@@ -85,57 +87,84 @@ upd.game={...g,seq:g.seq+1,dice:remain.map(f=>({face:f,sel:false,scoring:false})
 }
 }
 }
+return upd;
+}
+
+// бросок человека (после анимации)
+function finishRoll(faces){
+const upd=buildFinishRoll(faces,state.myPid);
 writeRoom(upd).catch(e=>toast('Ошибка сети','bad')).finally(()=>{state.animLock=false;});
 }
 
-/* ---------- банк (хватит) ---------- */
-export function bank(){
-if(!isMyTurn()||state.room.game.phase!=='choose')return;
-const chk=canBank();if(!chk.ok){toast(chk.why,'warn');return;}
-const g=state.room.game,p=state.room.players[state.myPid],ns=p.score+g.turnTotal,upd={};
-if(ns>TARGET){
-const r=applyDot(upd,state.myPid,`${p.name}: перебор ${ns} вместо 1000.`);
-pushLogIn(upd,r.msg+' Ход не засчитывается.','dot');
-applyBarrelTick(upd,state.myPid,r.cutToBarrel?1:2);
-applySamosvalAll(upd);
-upd.game={...baseWait(g),waitMs:3500};
-writeRoom(upd);return;
+// бросок от имени произвольного игрока (бот) — без анимации
+export function applyRoll(faces,pid){
+if(!state.room||!state.room.game)return Promise.resolve();
+const g=state.room.game;
+if(g.current!==pid||!(g.phase==='roll'||g.phase==='choose'))return Promise.resolve();
+return writeRoom(buildFinishRoll(faces,pid));
 }
-pushScore(upd,state.myPid,ns);
-upd[`players/${state.myPid}/opened`]=true;
-upd[`players/${state.myPid}/zeroStreak`]=0;
+
+/* ---------- банк (хватит) ---------- */
+function buildBank(pid){
+const g=state.room.game,p=state.room.players[pid],ns=p.score+g.turnTotal,upd={};
+if(ns>TARGET){
+const r=applyDot(upd,pid,`${p.name}: перебор ${ns} вместо 1000.`);
+pushLogIn(upd,r.msg+' Ход не засчитывается.','dot');
+applyBarrelTick(upd,pid,r.cutToBarrel?1:2);
+applySamosvalAll(upd);
+upd.game={...baseWait(g,pid),waitMs:3500};
+return upd;
+}
+pushScore(upd,pid,ns);
+upd[`players/${pid}/opened`]=true;
+upd[`players/${pid}/zeroStreak`]=0;
 pushLogIn(upd,`💰 ${p.name} записывает ${g.turnTotal} ${ptsWord(g.turnTotal)} → ${ns}`,'bank');
 if(ns===TARGET){
-upd.meta={...state.room.meta,status:'finished',winner:state.myPid};
+upd.meta={...state.room.meta,status:'finished',winner:pid};
 upd.game={...g,seq:g.seq+1,phase:'over'};
 pushLogIn(upd,`🏆 ${p.name} набирает ровно 1000 очков и ПОБЕЖДАЕТ!`,'win');
-writeRoom(upd);return;
+return upd;
 }
-state.room.order.forEach(pid=>{
-if(pid===state.myPid)return;
-const o=state.room.players[pid];
+// обгон: обогнанный срезается до СВОЕГО прошлого значения; равный счёт тоже обгон
+state.room.order.forEach(oid=>{
+if(oid===pid)return;
+const o=state.room.players[oid];
 if(g.startScore<o.score&&ns>=o.score){
 if(o.left)return;
 if(getBarrel(o.score)){
 pushLogIn(upd,`⚔ ${p.name} обгоняет ${o.name}, но тот в бочке — срез не применяется`,'ovr');
 return;
 }
-const newScore=crossLast(upd,pid,1);
-if(newScore===0)upd[`players/${pid}/opened`]=false;
+const newScore=crossLast(upd,oid,1);
+if(newScore===0)upd[`players/${oid}/opened`]=false;
 pushLogIn(upd,`⚔ Обгон! ${o.name} срезается до прошлого значения: ${newScore} ${ptsWord(newScore)}`,'ovr');
 const cb=getBarrel(newScore);
 if(cb){
-upd[`players/${pid}/inBarrel`]=cb.lo;
-upd[`players/${pid}/barrelLeft`]=2;
-upd[`players/${pid}/histMark`]=lastValidIndex(projHist(upd,pid));
+upd[`players/${oid}/inBarrel`]=cb.lo;
+upd[`players/${oid}/barrelLeft`]=2;
+upd[`players/${oid}/histMark`]=lastValidIndex(projHist(upd,oid));
 pushLogIn(upd,`🛢 ${o.name} после среза попадает в бочку ${cb.lo}–${cb.hi}: 2 хода на выход`,'dot');
 }
 }
 });
-applyBarrelTick(upd,state.myPid,2);
+applyBarrelTick(upd,pid,2);
 applySamosvalAll(upd);
-upd.game=baseWait(g);
-writeRoom(upd);
+upd.game=baseWait(g,pid);
+return upd;
+}
+
+export function bank(){
+if(!isMyTurn()||state.room.game.phase!=='choose')return;
+const chk=canBank();if(!chk.ok){toast(chk.why,'warn');return;}
+writeRoom(buildBank(state.myPid));
+}
+
+// банк от имени произвольного игрока (бот)
+export function applyBank(pid){
+if(!state.room||!state.room.game||state.room.game.phase!=='choose')return Promise.resolve();
+if(state.room.game.current!==pid)return Promise.resolve();
+const chk=canBank();if(!chk.ok)return Promise.resolve();
+return writeRoom(buildBank(pid));
 }
 
 /* ---------- передача хода ---------- */
