@@ -8,6 +8,7 @@ export const R=p=>ref(db,`rooms/${state.roomCode}${p?'/'+p:''}`);
 
 // Запись в комнату + автоматическое обновление lastActive (для метки «неактивна»)
 export function writeRoom(upd){
+console.log('[writeRoom] комната:',state.roomCode,'запись:',JSON.stringify(upd).slice(0,120));
 if(upd.meta&&typeof upd.meta==='object')upd.meta={...upd.meta,lastActive:Date.now()};
 else upd['meta/lastActive']=Date.now();
 return update(ref(db,`rooms/${state.roomCode}`),upd);
@@ -56,24 +57,18 @@ const m=state.room&&state.room.meta;
 const iAmCreator=m&&m.createdBy===state.uid;
 if(!iAmCreator&&!state.isAdmin)return false;
 if(!confirm('Удалить комнату '+state.roomCode+'? Все данные партии будут стёрты, все игроки вернутся к списку.'))return false;
-const codeToDelete=state.roomCode; // сохраняем код ДО обнуления
-console.log('[deleteCurrentRoom] Удаляю комнату:',codeToDelete);
-stopListen(); // отписываемся, чтобы не ждать callback удаления
+const codeToDelete=state.roomCode;
+console.log('[deleteCurrentRoom] начинаю удаление:',codeToDelete);
+stopListen();
 try{
 await remove(ref(db,`rooms/${codeToDelete}`));
-// проверяем, что комната действительно удалена
-const check=await get(ref(db,`rooms/${codeToDelete}`));
-if(check.exists()){
-console.warn('[deleteCurrentRoom] Комната всё ещё существует, удаляю повторно');
-await remove(ref(db,`rooms/${codeToDelete}`));
-}
+console.log('[deleteCurrentRoom] remove() завершён для',codeToDelete);
 state.roomCode=null;state.room=null;
 toast('Комната удалена','gold');
 return true;
 }catch(e){
-console.error('[deleteCurrentRoom] Ошибка удаления:',e);
-toast('Не удалось удалить комнату','bad');
-return false;
+console.error('[deleteCurrentRoom] ошибка:',e);
+toast('Не удалось удалить комнату','bad');return false;
 }
 }
 
