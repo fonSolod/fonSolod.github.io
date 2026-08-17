@@ -16,12 +16,23 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/rubik/latin-500.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/rubik/latin-700.css">
 <link rel="stylesheet" href="./css/styles.css">
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 </head>
 <body>
+
+<section id="splash" class="splash" style="position:fixed;inset:0;z-index:1000;background:#04130d;display:grid;place-items:center;padding:20px">
+<div class="splashInner" style="display:flex;flex-direction:column;align-items:center;gap:14px">
+<div class="logo"><h1 style="font-family:'Unbounded',sans-serif;font-size:56px;letter-spacing:8px;color:#f5c451;margin:0;text-shadow:0 0 30px rgba(245,196,81,.35)">ТЫЩА</h1></div>
+<div class="splashSub" style="font-family:'Unhardt',sans-serif;font-size:22px;letter-spacing:12px;color:#d4a63a;opacity:.85">1000</div>
+<div class="spinner" style="width:36px;height:36px;border:3px solid rgba(245,196,81,.2);border-top-color:#f5c451;border-radius:50%;animation:spin .9s linear infinite;margin-top:18px"></div>
+<div class="splashHint" id="splashHint" style="color:#8a9a8f;font-size:13px;margin-top:8px">Проверка сессии…</div>
+</div>
+</section>  
+  
 <div id="app">
 
 <!-- АВТОРИЗАЦИЯ -->
-<section id="auth">
+<section id="auth" hidden>
 <div class="panel" id="authCard">
 <div class="logo"><h1>ТЫЩА</h1></div>
 <p class="tagline">Войдите или создайте аккаунт, чтобы играть с разных устройств</p>
