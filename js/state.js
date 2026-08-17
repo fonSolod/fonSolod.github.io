@@ -3,6 +3,7 @@
 
 export const state={
 // аккаунт (Firebase Auth)
+deleting:false,
 uid:null,
 profile:null,        // профиль из users/{uid}
 isAdmin:false,       // users/{uid}/isAdmin === true
