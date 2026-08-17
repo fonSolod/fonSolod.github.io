@@ -113,6 +113,14 @@ toast('Все игроки покинули партию — комната уд
 state.roomCode=null;state.room=null;
 return true;
 }
+// остались только боты — партия не может продолжаться без людей, удаляем комнату
+const humansLeft=newOrder.some(pid=>{const p=state.room.players[pid];return !(p&&p.isBot);});
+if(!humansLeft){
+await remove(ref(db,`rooms/${state.roomCode}`));
+toast('Остались только боты — комната удалена','gold');
+state.roomCode=null;state.room=null;
+return true;
+}
 if(newOrder.length===1){
 const winner=newOrder[0];
 upd.meta={...m,status:'finished',winner,createdBy:newCreator||winner};
