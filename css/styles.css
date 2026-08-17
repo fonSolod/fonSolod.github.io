@@ -241,3 +241,8 @@ button{font-family:inherit;cursor:pointer}input{font-family:inherit}
 .badge.botBadge{background:#2b6c8f;color:#dff2ff}
 .botDel{margin-left:auto;background:rgba(255,122,107,.12);border:1px solid rgba(255,122,107,.4);color:var(--bad);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;flex:none}
 select.bigInput{cursor:pointer}
+/* splash — полноэкранная загрузка */
+.splash[hidden]{display:none!important}
+.splashInner{display:flex;flex-direction:column;align-items:center;gap:14px}
+.spinner{width:36px;height:36px;border:3px solid rgba(245,196,81,.2);border-top-color:var(--gold,#f5c451);border-radius:50%;animation:spin .9s linear infinite;margin-top:18px}
+@keyframes spin{to{transform:rotate(360deg)}}
