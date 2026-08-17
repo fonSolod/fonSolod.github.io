@@ -228,12 +228,12 @@ if(ui.onSnapshot)ui.onSnapshot(prev);
 
 /* ---------- авто-вход по ссылке / последней комнате ---------- */
 export async function autoJoin(){
-if(!configured||!state.uid)return;
+if(!configured||!state.uid)return false;
 const hash=location.hash.slice(1).toUpperCase();
 const code=validCode(hash)?hash:localStorage.getItem('tyscha_last');
-if(!code)return;
+if(!code)return false;
 const s=await get(ref(db,`rooms/${code}`));
-if(!s.exists())return;
+if(!s.exists())return false;
 const data=s.val();
 const saved=localStorage.getItem('tyscha_pid_'+code);
 const owner=localStorage.getItem('tyscha_pidowner_'+code);
@@ -241,9 +241,10 @@ const iAmActive=data.players&&(
 (data.players[state.uid]&&!data.players[state.uid].left)||
 (saved&&(!owner||owner===state.uid)&&data.players[saved]&&!data.players[saved].left)
 );
-if(iAmActive){joinRoom(code);return;}
+if(iAmActive){await joinRoom(code);return true;}
 if(validCode(hash)){
 const ci=document.getElementById('codeInput');if(ci)ci.value=hash;
 toast(`Комната ${hash} найдена — нажмите «Войти»`,'gold');
 }
+return false;
 }
