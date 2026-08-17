@@ -23,7 +23,7 @@ botKey=key;
 botTimer=setTimeout(()=>{botTimer=null;act(key);},BOT_DELAY);
 }
 
-function clearBot(){if(botTimer){clearTimeout(botTimer);botTimer=null;}botKey='';}
+export function clearBot(){if(botTimer){clearTimeout(botTimer);botTimer=null;}botKey='';}
 
 function act(key){
 const r=state.room;
