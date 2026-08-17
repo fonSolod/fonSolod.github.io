@@ -9,6 +9,7 @@ import {canBank} from './ledger.js';
 /* ---------- экраны ---------- */
 export function showScreen(name){
 ['auth','home','lobby','game'].forEach(s=>$(s).hidden=(s!==name));
+if(name!=='game')$('winOverlay').hidden=true;
 if(name==='home'){const ci=$('codeInput');if(ci)ci.value='';}
 }
 export function renderScreen(prev){
