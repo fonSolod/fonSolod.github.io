@@ -8,7 +8,8 @@ export const R=p=>ref(db,`rooms/${state.roomCode}${p?'/'+p:''}`);
 
 // Запись в комнату + автоматическое обновление lastActive (для метки «неактивна»)
 export function writeRoom(upd){
-if(!state.roomCode){console.warn('[writeRoom] пропуск — комната не активна');return Promise.resolve();}
+if(state.deleting){console.warn('[writeRoom] пропуск — комната удаляется');return Promise.resolve();}
+if(!state.roomCode){console.warn('[writeRoom] пропуск — нет roomCode');return Promise.resolve();}
 if(upd.meta&&typeof upd.meta==='object')upd.meta={...upd.meta,lastActive:Date.now()};
 else upd['meta/lastActive']=Date.now();
 return update(ref(db,`rooms/${state.roomCode}`),upd);
