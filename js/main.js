@@ -85,22 +85,39 @@ $('smDeleteRoom').hidden=!(iAmCreator||state.isAdmin);
 }
 
 /* ---------- сессия ---------- */
+const splashHint=$('splashHint');
+const setSplash=(text)=>{if(splashHint)splashHint.textContent=text;};
+
 authM.watchAuth(async user=>{
+try{
 if(user){
+setSplash('Проверка сессии…');
 state.uid=user.uid;
+setSplash('Загрузка профиля…');
 state.profile=(await authM.loadProfile(user.uid))||{name:(user.email||'Игрок').split('@')[0]};
 state.isAdmin=state.profile.isAdmin===true;
 $('homeWho').textContent='Вы вошли как '+state.profile.name+(state.isAdmin?' 👑':'');
 $('accountChip').textContent='👤 '+state.profile.name;
-render.showScreen('home');
 net.startRoomsWatch();
-net.autoJoin();
+setSplash('Вход в комнату…');
+let joined=false;
+try{joined=await net.autoJoin();}catch(e){console.warn('autoJoin error:',e);}
+setSplash('Готово!');
+$('splash').hidden=true;
+if(!joined)render.showScreen('home');
 }else{
+setSplash('Загрузка…');
 net.stopListen();
 net.stopRoomsWatch();
 state.uid=null;state.profile=null;state.isAdmin=false;
 state.roomCode=null;state.room=null;state.homeRooms={};
 $('winOverlay').hidden=true;
+$('splash').hidden=true;
+render.showScreen('auth');
+}
+}catch(e){
+console.error('watchAuth error:',e);
+$('splash').hidden=true;
 render.showScreen('auth');
 }
 });
