@@ -8,6 +8,7 @@ export const R=p=>ref(db,`rooms/${state.roomCode}${p?'/'+p:''}`);
 
 // Запись в комнату + автоматическое обновление lastActive (для метки «неактивна»)
 export function writeRoom(upd){
+console.log('[writeRoom] комната:',state.roomCode,'запись:',JSON.stringify(upd).slice(0,120));
 if(state.deleting){console.warn('[writeRoom] пропуск — комната удаляется');return Promise.resolve();}
 if(!state.roomCode){console.warn('[writeRoom] пропуск — нет roomCode');return Promise.resolve();}
 if(upd.meta&&typeof upd.meta==='object')upd.meta={...upd.meta,lastActive:Date.now()};
@@ -47,13 +48,18 @@ const m=state.room&&state.room.meta;
 const iAmCreator=m&&m.createdBy===state.uid;
 if(!iAmCreator&&!state.isAdmin)return false;
 if(!confirm('Удалить комнату '+state.roomCode+'? Все данные партии будут стёрты, все игроки вернутся к списку.'))return false;
+console.log('[deleteCurrentRoom] начинаю удаление:',codeToDelete);
 stopListen(); // отписываемся, чтобы не ждать callback удаления
 try{
 await remove(ref(db,`rooms/${state.roomCode}`));
+console.log('[deleteCurrentRoom] remove() завершён для',codeToDelete);
 state.roomCode=null;state.room=null;state.isMember=false;
 toast('Комната удалена','gold');
 return true;
-}catch(e){toast('Не удалось удалить комнату','bad');return false;}
+}catch(e){
+console.error('[deleteCurrentRoom] ошибка:',e);
+toast('Не удалось удалить комнату','bad');return false;
+}
 }
 
 // Покинуть партию: выбытие с сохранением счёта, автопобеда при 1 игроке, удаление при 0.
