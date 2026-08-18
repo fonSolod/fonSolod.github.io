@@ -35,24 +35,23 @@ state.homeRooms=snap.val()||{};
 if(ui.renderHome)ui.renderHome();
 });
 }
-export async function deleteRoom(code){
-const r=(state.homeRooms||{})[code];
-const iAmCreator=r&&r.meta&&r.meta.createdBy===state.uid;
-if(!iAmCreator&&!state.isAdmin)return;
-if(!confirm('Удалить комнату '+code+'? Все данные партии будут стёрты.'))return;
-try{await remove(ref(db,`rooms/${code}`));toast('Комната удалена','gold');}
-catch(e){toast('Не удалось удалить комнату','bad');}
-}
 export async function deleteCurrentRoom(){
 const m=state.room&&state.room.meta;
 const iAmCreator=m&&m.createdBy===state.uid;
 if(!iAmCreator&&!state.isAdmin)return false;
 if(!confirm('Удалить комнату '+state.roomCode+'? Все данные партии будут стёрты, все игроки вернутся к списку.'))return false;
+const codeToDelete=state.roomCode; // сохраняем код ДО обнуления
 console.log('[deleteCurrentRoom] начинаю удаление:',codeToDelete);
-stopListen(); // отписываемся, чтобы не ждать callback удаления
+stopListen();
 try{
-await remove(ref(db,`rooms/${state.roomCode}`));
+await remove(ref(db,`rooms/${codeToDelete}`));
 console.log('[deleteCurrentRoom] remove() завершён для',codeToDelete);
+// проверяем, что комната действительно удалена
+const check=await get(ref(db,`rooms/${codeToDelete}`));
+if(check.exists()){
+console.warn('[deleteCurrentRoom] комната всё ещё существует, удаляю повторно');
+await remove(ref(db,`rooms/${codeToDelete}`));
+}
 state.roomCode=null;state.room=null;state.isMember=false;
 toast('Комната удалена','gold');
 return true;
