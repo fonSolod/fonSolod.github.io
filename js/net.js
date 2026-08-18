@@ -8,9 +8,7 @@ export const R=p=>ref(db,`rooms/${state.roomCode}${p?'/'+p:''}`);
 
 // Запись в комнату + автоматическое обновление lastActive (для метки «неактивна»)
 export function writeRoom(upd){
-console.log('[writeRoom] комната:',state.roomCode,'запись:',JSON.stringify(upd).slice(0,120));
-if(state.deleting){console.warn('[writeRoom] пропуск — комната удаляется');return Promise.resolve();}
-if(!state.roomCode){console.warn('[writeRoom] пропуск — нет roomCode');return Promise.resolve();}
+if(!state.roomCode){console.warn('[writeRoom] пропуск — комната не активна');return Promise.resolve();}
 if(upd.meta&&typeof upd.meta==='object')upd.meta={...upd.meta,lastActive:Date.now()};
 else upd['meta/lastActive']=Date.now();
 return update(ref(db,`rooms/${state.roomCode}`),upd);
@@ -35,18 +33,43 @@ state.homeRooms=snap.val()||{};
 if(ui.renderHome)ui.renderHome();
 });
 }
+export async function deleteRoom(code){
+const r=(state.homeRooms||{})[code];
+const iAmCreator=r&&r.meta&&r.meta.createdBy===state.uid;
+if(!iAmCreator&&!state.isAdmin)return;
+if(!confirm('Удалить комнату '+code+'? Все данные партии будут стёрты.'))return;
+try{await remove(ref(db,`rooms/${code}`));toast('Комната удалена','gold');}
+catch(e){toast('Не удалось удалить комнату','bad');}
+}
+
+// Очищает localStorage от кода комнаты и связанных ключей
+function clearRoomStorage(code){
+if(!code)return;
+localStorage.removeItem('tyscha_last');
+localStorage.removeItem('tyscha_pid_'+code);
+localStorage.removeItem('tyscha_pidowner_'+code);
+}
+
+// Отменяет отложенную запись online=false, которая иначе пересоздаст комнату
+function cancelPresence(){
+if(!state.roomCode||!state.myPid)return;
+try{
+const on=ref(db,`rooms/${state.roomCode}/players/${state.myPid}/online`);
+onDisconnect(on).cancel();
+}catch(e){console.warn('[cancelPresence] не удалось отменить:',e);}
+}
+
 export async function deleteCurrentRoom(){
 const m=state.room&&state.room.meta;
 const iAmCreator=m&&m.createdBy===state.uid;
 if(!iAmCreator&&!state.isAdmin)return false;
 if(!confirm('Удалить комнату '+state.roomCode+'? Все данные партии будут стёрты, все игроки вернутся к списку.'))return false;
 const codeToDelete=state.roomCode;
+cancelPresence(); // отменяем отложенный online=false ДО удаления
 stopListen();
 try{
 await remove(ref(db,`rooms/${codeToDelete}`));
-localStorage.removeItem('tyscha_last');
-localStorage.removeItem('tyscha_pid_'+codeToDelete);
-localStorage.removeItem('tyscha_pidowner_'+codeToDelete);
+clearRoomStorage(codeToDelete);
 state.roomCode=null;state.room=null;state.isMember=false;
 toast('Комната удалена','gold');
 return true;
@@ -78,19 +101,36 @@ if(newOrder.includes(cand)){newCreator=cand;break;}
 }
 if(newCreator)pushLogIn(upd,`👑 ${state.room.players[newCreator].name} становится организатором`,'turn');
 }
+cancelPresence(); // отменяем отложенный online=false ДО записи
 stopListen();
 try{
 if(newOrder.length===0){
 await remove(ref(db,`rooms/${state.roomCode}`));
 toast('Все игроки покинули партию — комната удалена','gold');
-}else if(newOrder.length===1){
+clearRoomStorage(codeToLeave);
+state.roomCode=null;state.room=null;state.isMember=false;
+return true;
+}
+// остались только боты — партия не может продолжаться без людей
+const humansLeft=newOrder.some(pid=>{const p=state.room.players[pid];return !(p&&p.isBot);});
+if(!humansLeft){
+await remove(ref(db,`rooms/${state.roomCode}`));
+toast('Остались только боты — комната удалена','gold');
+clearRoomStorage(codeToLeave);
+state.roomCode=null;state.room=null;state.isMember=false;
+return true;
+}
+if(newOrder.length===1){
 const winner=newOrder[0];
 upd.meta={...m,status:'finished',winner,createdBy:newCreator||winner};
 upd.game={seq:(g.seq||0)+1,phase:'over',dice:[],tray:[],turnTotal:0,winner};
 pushLogIn(upd,`🏆 ${state.room.players[winner].name} побеждает: все соперники покинули партию`,'win');
 await update(ref(db,`rooms/${state.roomCode}`),upd);
 toast('Партия завершена','gold');
-}else{
+clearRoomStorage(codeToLeave);
+state.roomCode=null;state.room=null;state.isMember=false;
+return true;
+}
 if(newCreator)upd.meta={...m,createdBy:newCreator};
 if(g.current===state.myPid){
 const oldIdx=oldOrder.indexOf(state.myPid);
@@ -106,11 +146,7 @@ pushLogIn(upd,`— Ход: ${state.room.players[next].name} —`,'turn');
 }
 }
 await update(ref(db,`rooms/${state.roomCode}`),upd);
-}
-// очищаем localStorage ПОСЛЕ успешной записи
-localStorage.removeItem('tyscha_last');
-localStorage.removeItem('tyscha_pid_'+codeToLeave);
-localStorage.removeItem('tyscha_pidowner_'+codeToLeave);
+clearRoomStorage(codeToLeave);
 state.roomCode=null;state.room=null;state.isMember=false;
 return true;
 }catch(e){toast('Не удалось покинуть партию','bad');return false;}
@@ -141,12 +177,9 @@ const saved=localStorage.getItem('tyscha_pid_'+code);
 const owner=localStorage.getItem('tyscha_pidowner_'+code);
 const legacyActive=saved&&(!owner||owner===state.uid)&&data.players&&data.players[saved]&&!data.players[saved].left;
 if((me&&!me.left)||legacyActive){
-// активный игрок — просто возвращаемся в комнату
 state.myPid=(me&&!me.left)?state.uid:saved;
 state.isMember=true;
 }else{
-// не участвуем: входим игроком в лобби (в т.ч. ПОВТОРНО после «Покинуть партию»)
-// или наблюдателем в идущую/завершённую партию
 const activeCount=(data.order||[]).length;
 if(data.meta.status==='lobby'&&activeCount>=4){toast('Комната заполнена','warn');state.roomCode=null;return;}
 state.myPid=state.uid;
@@ -158,7 +191,7 @@ localStorage.setItem('tyscha_pid_'+code,state.myPid);
 localStorage.setItem('tyscha_pidowner_'+code,state.uid);
 if(state.isMember){
 const ordLen=(data.order||[]).length;
-const others={...data.players};delete others[state.uid]; // своя старая запись не мешает дедупликации имени
+const others={...data.players};delete others[state.uid];
 await update(ref(db,`rooms/${code}`),{
 [`players/${state.myPid}`]:playerObj(uniqueName(getName(),others),ordLen),
 [`order/${ordLen}`]:state.myPid,
@@ -180,11 +213,8 @@ if(!code||!pid)return;
 const on=ref(db,`rooms/${code}/players/${pid}/online`);
 unsubConn=onValue(ref(db,'.info/connected'),s=>{
 if(s.val()===true){
-// двойная защита: не пишем, если комната уже удалена, мы вышли или не участник
-if(state.roomCode!==code||!state.isMember){
-console.warn('[setupPresence] пропуск — не участник комнаты');
-return;
-}
+// защита: не пишем, если комната уже удалена или мы вышли
+if(state.roomCode!==code||!state.isMember)return;
 onDisconnect(on).set(false);
 set(on,true);
 }
@@ -199,22 +229,26 @@ stopListen();
 unsubRoom=onValue(ref(db,`rooms/${state.roomCode}`),snap=>{
 const data=snap.val();
 if(!data){
-// комната удалена
+// комната удалена — очищаем состояние и отписываемся,
+// отменяем onDisconnect, чтобы online=false не пересоздал комнату
+cancelPresence();
 state.room=null;
 state.roomCode=null;
 state.isMember=false;
+clearRoomStorage(state.roomCode); // код уже null, но на всякий случай
 if(ui.onSnapshot)ui.onSnapshot(null);
 toast('Комната удалена','warn');
 setTimeout(()=>{stopListen();},0);
 return;
 }
-// защита: если мы вышли из комнаты (left===true), отписываемся и очищаем state
+// защита: если мы вышли из комнаты (left===true), отписываемся
 const me=data.players&&data.players[state.myPid];
 if(me&&me.left===true){
-console.warn('[listen] игрок вышел из комнаты, отписываюсь');
+cancelPresence();
 state.room=null;
 state.roomCode=null;
 state.isMember=false;
+clearRoomStorage(state.roomCode);
 if(ui.onSnapshot)ui.onSnapshot(null);
 setTimeout(()=>{stopListen();},0);
 return;
